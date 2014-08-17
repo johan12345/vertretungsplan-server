@@ -4,3 +4,4 @@ target
 !.settings/.jsdtscope
 .classpath
 src/main/java/com/johan/vertretungsplan/backend/Settings.java
+.openshift/config/tomcat-users.xml
