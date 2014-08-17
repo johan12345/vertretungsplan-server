@@ -1,0 +1,1 @@
+wget http://vertretungsplan-johan98.rhcloud.com/cron/vertretungsplan -O /dev/null

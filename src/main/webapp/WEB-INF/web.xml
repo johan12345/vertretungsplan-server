@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app version="3.0"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         metadata-complete="false">
+	<servlet>
+		<servlet-name>VertretungsplanCron</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.CronJobServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>VertretungsplanCron</servlet-name>
+		<url-pattern>/cron/vertretungsplan</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>GetVertretungsplan</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.GetVertretungsplanServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>GetVertretungsplan</servlet-name>
+		<url-pattern>/vertretungsplan</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>GetClasses</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.GetKlassenServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>GetClasses</servlet-name>
+		<url-pattern>/classes</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>GetSchools</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.GetSchoolsServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>GetSchools</servlet-name>
+		<url-pattern>/schools</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>Register</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.RegisterServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Register</servlet-name>
+		<url-pattern>/register</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>GetRegistration</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.GetRegistrationServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>GetRegistration</servlet-name>
+		<url-pattern>/getregistration</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>RemoveRegistration</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.RemoveRegistrationServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>RemoveRegistration</servlet-name>
+		<url-pattern>/removeregistration</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>Logs</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.GetLogsServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Logs</servlet-name>
+		<url-pattern>/admin/logs</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>Schools</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.SchoolsServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Schools</servlet-name>
+		<url-pattern>/admin/schools</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>Check</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.CheckSchoolServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Check</servlet-name>
+		<url-pattern>/admin/check</url-pattern>
+	</servlet-mapping>
+         
+	<filter>
+		<filter-name>CORS</filter-name>
+		<filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class>
+	</filter>
+	<filter-mapping>
+        <filter-name>CORS</filter-name>
+        <url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>Admin</web-resource-name>
+			<url-pattern>/admin/*</url-pattern>
+			<http-method>GET</http-method>
+			<http-method>POST</http-method>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>tomcat</role-name>
+		</auth-constraint>
+
+		<user-data-constraint>
+			<transport-guarantee>CONFIDENTIAL</transport-guarantee>
+		</user-data-constraint>
+	</security-constraint>
+
+	<login-config>
+		<auth-method>FORM</auth-method>
+		<form-login-config>
+			<form-login-page>/signin.html</form-login-page>
+			<form-error-page>/signin-failed.html</form-error-page>
+		</form-login-config>
+	</login-config>
+</web-app>
+

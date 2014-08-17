@@ -1,0 +1,6 @@
+/target
+target
+.settings/*
+!.settings/.jsdtscope
+.classpath
+src/main/java/com/johan/vertretungsplan/backend/Settings.java
