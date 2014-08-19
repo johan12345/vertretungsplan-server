@@ -74,37 +74,85 @@ public class UntisInfoParser extends UntisCommonParser {
 		List<VertretungsplanTag> tage = new ArrayList<VertretungsplanTag>();
 		
 		String info = navbarDoc.select(".description").text();
-		String stand = info.substring(info.indexOf("Stand:"));
+		String stand;
+		try {
+			stand = info.substring(info.indexOf("Stand:"));
+		} catch (Exception e) {
+			stand = "";
+		}
 		
 		for (Element option:select.children()) {
 			String week = option.attr("value");
-			String url = baseUrl + "/w/" + week + "/w00000.htm";
-			Document doc = Jsoup.parse(httpGet(url, schule.getData().getString("encoding")));
-			Elements days = doc.select("#vertretung > p > b, #vertretung > b");
-			for(Element day:days) {
-				VertretungsplanTag tag = new VertretungsplanTag();
-				tag.setStand(stand);
-				tag.setDatum(day.text());
-				Element next = null;		
-				if (day.parent().tagName().equals("p")) {
-					next = day.parent().nextElementSibling().nextElementSibling();
-				} else
-					next = day.parent().select("p").first().nextElementSibling();
-				if (next.className().equals("subst")) {
-					//Vertretungstabelle
-					if(next.text().contains("Vertretungen sind nicht freigegeben"))
-						continue;
-					parseVertretungsplanTable(next, data, tag);
-				} else {
-					//Nachrichten
-					parseNachrichten(next, data, tag);
-					next = next.nextElementSibling().nextElementSibling();
-					parseVertretungsplanTable(next, data, tag);
+			if (data.optBoolean("single_classes", false)) {
+				int classNumber = 1;
+				for (String klasse:getAllClasses()) {
+					String paddedNumber = String.format("%05d", classNumber);
+					String url;
+					if (data.optBoolean("w_after_number", false))
+						url = baseUrl  + "/" + week + "/w/w" + paddedNumber + ".htm";
+					else
+						url = baseUrl + "/w/" + week + "/w" + paddedNumber + ".htm";
+					
+					Document doc = Jsoup.parse(httpGet(url, schule.getData().getString("encoding")));
+					Elements days = doc.select("#vertretung > p > b, #vertretung > b");
+					for(Element day:days) {
+						VertretungsplanTag tag = getTagByDatum(tage, day.text());
+						tag.setStand(stand);
+						tag.setDatum(day.text());
+						Element next = null;		
+						if (day.parent().tagName().equals("p")) {
+							next = day.parent().nextElementSibling().nextElementSibling();
+						} else
+							next = day.parent().select("p").first().nextElementSibling();
+						if (next.className().equals("subst")) {
+							//Vertretungstabelle
+							if(next.text().contains("Vertretungen sind nicht freigegeben"))
+								continue;
+							parseVertretungsplanTable(next, data, tag);
+						} else {
+							//Nachrichten
+							parseNachrichten(next, data, tag);
+							next = next.nextElementSibling().nextElementSibling();
+							parseVertretungsplanTable(next, data, tag);
+						}
+						writeTagByDatum(tage, tag);
+					}
+					
+					classNumber ++;
 				}
-				tage.add(tag);
+			} else {
+				String url;
+				if (data.optBoolean("w_after_number", false))
+					url = baseUrl  + "/" + week +"/w/w00000.htm";
+				else
+					url = baseUrl + "/w/" + week + "/w00000.htm";
+				Document doc = Jsoup.parse(httpGet(url, schule.getData().getString("encoding")));
+				Elements days = doc.select("#vertretung > p > b, #vertretung > b");
+				for(Element day:days) {
+					VertretungsplanTag tag = getTagByDatum(tage, day.text());
+					tag.setStand(stand);
+					tag.setDatum(day.text());
+					Element next = null;		
+					if (day.parent().tagName().equals("p")) {
+						next = day.parent().nextElementSibling().nextElementSibling();
+					} else
+						next = day.parent().select("p").first().nextElementSibling();
+					if (next.className().equals("subst")) {
+						//Vertretungstabelle
+						if(next.text().contains("Vertretungen sind nicht freigegeben"))
+							continue;
+						parseVertretungsplanTable(next, data, tag);
+					} else {
+						//Nachrichten
+						parseNachrichten(next, data, tag);
+						next = next.nextElementSibling().nextElementSibling();
+						parseVertretungsplanTable(next, data, tag);
+					}
+					tage.add(tag);
+				}
 			}
+			v.setTage(tage);
 		}
-		v.setTage(tage);
 		return v;
 	}
 
@@ -123,6 +171,26 @@ public class UntisInfoParser extends UntisCommonParser {
 		} else {
 			throw new IOException();
 		}
+	}
+	
+	private VertretungsplanTag getTagByDatum(List<VertretungsplanTag> tage, String datum) {
+		for (VertretungsplanTag tag:tage) {
+			if (tag.getDatum().equals(datum))
+				return tag;
+		}
+		return new VertretungsplanTag();
+	}
+	
+	private void writeTagByDatum(List<VertretungsplanTag> tage, VertretungsplanTag newTag) {
+		int i = 0;
+		for (VertretungsplanTag tag:tage) {
+			if (tag.getDatum().equals(newTag.getDatum())) {
+				tage.set(i, newTag);
+				return;
+			}
+			i++;
+		}
+		tage.add(newTag);
 	}
 
 }

@@ -120,7 +120,7 @@
                 <div class="form-group">
   				  <label class="col-md-4 control-label" for="editor-text">JSON-Daten</label>
   				  <div class="col-md-8">
-                    <textarea rows="20" style="width:100%" name="editor-text" id="editor-text" class="form-control"></textarea>
+                    <div id="editor-text" class="form-control" style="height:500px" name="editor-text"></div>
                   </div>
                 </div>
                 <div class="form-group">
@@ -158,6 +158,7 @@
           </div>
         </div>
         
+        <script src="//cdn.jsdelivr.net/ace/1.1.5/min/ace.js" type="text/javascript" charset="utf-8"></script>
         <script type="text/javascript" src="js/editor.js"></script>
         <script type="text/javascript" src="js/logs.js"></script>
 <jsp:include page="foot.jsp" />

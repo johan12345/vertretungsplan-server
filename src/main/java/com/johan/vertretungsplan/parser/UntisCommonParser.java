@@ -105,6 +105,11 @@ public abstract class UntisCommonParser extends BaseParser {
 	 			}
 	 		}
  		} else {
+ 			boolean hasType = false;
+ 			for (int i = 0; i<data.getJSONArray("columns").length(); i++) {
+ 				if (data.getJSONArray("columns").getString(i).equals("type"))
+ 					hasType = true;
+ 			}
  			for (Element zeile:table.select("tr.list.odd, tr.list.even")) {
  				Vertretung v = new Vertretung();
  				String klassen = "";
@@ -122,7 +127,7 @@ public abstract class UntisCommonParser extends BaseParser {
  					else if(type.equals("type-entfall")) {
  						if(spalte.text().equals("x"))
  							v.setType("Entfall");
- 						else
+ 						else if (!hasType)
  							v.setType("Vertretung");
  					}
  					else if(type.equals("room"))
@@ -131,6 +136,10 @@ public abstract class UntisCommonParser extends BaseParser {
  						v.setPreviousRoom(spalte.text());
  					else if(type.equals("desc"))
  						v.setDesc(spalte.text());
+ 					else if(type.equals("teacher"))
+ 						v.setTeacher(spalte.text());
+ 					else if(type.equals("previousTeacher"))
+ 						v.setPreviousTeacher(spalte.text());
  					else if(type.equals("class"))
  						klassen = spalte.text();
  					i++;
