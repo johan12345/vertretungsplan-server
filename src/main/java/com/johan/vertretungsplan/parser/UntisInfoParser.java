@@ -37,7 +37,6 @@ import com.johan.vertretungsplan.objects.VertretungsplanTag;
 /**
  * Parser für Untis-Vertretungspläne mit dem Info-Stundenplan-Layout
  * Beispiel: AKG Bensheim http://www.akg-bensheim.de/akgweb2011/content/Vertretung/default.htm
- * Wurde bisher noch nicht mit anderen Schulen getestet.
  *
  */
 public class UntisInfoParser extends UntisCommonParser {
@@ -67,6 +66,8 @@ public class UntisInfoParser extends UntisCommonParser {
 	@Override
 	public Vertretungsplan getVertretungsplan()
 			throws IOException, JSONException {
+		new LoginHandler(schule).handleLogin(executor, cookieStore, username, password);
+		
 		Document navbarDoc = Jsoup.parse(getNavbarDoc().replace("&nbsp;", ""));
 		Element select = navbarDoc.select("select[name=week]").first();
 		

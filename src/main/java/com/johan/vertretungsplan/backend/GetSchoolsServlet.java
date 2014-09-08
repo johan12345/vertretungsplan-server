@@ -30,6 +30,10 @@ public class GetSchoolsServlet extends HttpServlet {
 				json.put("id", school.getId());
 				json.put("name", school.getName());
 				json.put("city", school.getCity());
+				json.put("requiresLogin", school.getData().has("login"));
+				if (school.getApi().equals("dsbmobile")) {
+					json.put("login", school.getData().getString("login"));
+				}
 				if(school.getGeo() != null) {
 					JSONArray geo = new JSONArray();
 					geo.put(school.getGeo()[0]);
@@ -44,6 +48,7 @@ public class GetSchoolsServlet extends HttpServlet {
 				BasicDBObject sub = new BasicDBObject("schoolId", school.getId());
 				DBCursor cursor = coll.find(sub);
 				json.put("user_count", cursor.count());
+				cursor.close();
 				
 				allSchools.put(json);
 			} catch (JSONException e) {
@@ -63,12 +68,17 @@ public class GetSchoolsServlet extends HttpServlet {
 		
 		DBCollection coll = db.getCollection("school_info");
 		
+		DBObject order = new BasicDBObject("_id", 1);
+		
 		List<Schule> schools = new ArrayList<Schule>();
-		for(DBObject obj:coll.find()) {	
+		DBCursor cursor = coll.find();
+		cursor.sort(order);
+		for(DBObject obj:cursor) {	
 			String schoolId = (String) obj.get("_id");
 			String jsonString = (String) obj.get("json");
 			schools.add(Schule.fromJSON(schoolId, new JSONObject(jsonString)));
 		}
+		cursor.close();
 		return schools;
 	}
 }

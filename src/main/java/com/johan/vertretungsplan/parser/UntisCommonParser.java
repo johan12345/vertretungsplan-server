@@ -19,11 +19,18 @@ package com.johan.vertretungsplan.parser;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
@@ -32,6 +39,7 @@ import com.johan.vertretungsplan.objects.KlassenVertretungsplan;
 import com.johan.vertretungsplan.objects.Schule;
 import com.johan.vertretungsplan.objects.Vertretung;
 import com.johan.vertretungsplan.objects.VertretungsplanTag;
+import com.paour.comparator.NaturalOrderComparator;
 
 /**
  * Enthält gemeinsam genutzte Funktionen für die Parser für
@@ -39,175 +47,235 @@ import com.johan.vertretungsplan.objects.VertretungsplanTag;
  *
  */
 public abstract class UntisCommonParser extends BaseParser {
-	
-	private static final String[] EXCLUDED_CLASS_NAMES = new String[]{"-----"};
-	
+
+	private static final String[] EXCLUDED_CLASS_NAMES = new String[] { "-----" };
+
 	public UntisCommonParser(Schule schule) {
 		super(schule);
 	}
 
 	/**
 	 * Parst eine Vertretungstabelle eines Untis-Vertretungsplans
-	 * @param table das <code>table</code>-Element des HTML-Dokuments, das geparst werden soll
-	 * @param data Daten von der Schule (aus <code>Schule.getData()</code>)
-	 * @param tag der {@link VertretungsplanTag} in dem die Vertretungen gespeichert werden sollen
+	 * 
+	 * @param table
+	 *            das <code>table</code>-Element des HTML-Dokuments, das geparst
+	 *            werden soll
+	 * @param data
+	 *            Daten von der Schule (aus <code>Schule.getData()</code>)
+	 * @param tag
+	 *            der {@link VertretungsplanTag} in dem die Vertretungen
+	 *            gespeichert werden sollen
 	 * @throws JSONException
 	 */
-	protected void parseVertretungsplanTable(Element table, JSONObject data, VertretungsplanTag tag) throws JSONException {
-		if(data.optBoolean("class_in_extra_line")) { 		
-	 		for (Element element:table.select("td.inline_header")) {
-	 			if(isValidClass(element.text())) {
-		 			KlassenVertretungsplan kv = new KlassenVertretungsplan(element.text());
-			 			
-			 		Element zeile = null;
-			 		try {
-			 			zeile = element.parent().nextElementSibling();
-			 			if (zeile.select("td") == null) { zeile=zeile.nextElementSibling();}
-			 			while (zeile != null && !zeile.select("td").attr("class").equals("list inline_header")) {
-			 				Vertretung v = new Vertretung();
-			 				
-			 				int i = 0;
-			 				for(Element spalte : zeile.select("td")) {
-			 					String type = data.getJSONArray("columns").getString(i);
-			 					if(type.equals("lesson"))
-			 						v.setLesson(spalte.text());
-			 					else if(type.equals("subject"))
-			 						v.setSubject(spalte.text());
-			 					else if(type.equals("previousSubject"))
-			 						v.setPreviousSubject(spalte.text());
-			 					else if(type.equals("type"))
-			 						v.setType(spalte.text());
-			 					else if(type.equals("type-entfall")) {
-			 						if(spalte.text().equals("x"))
-			 							v.setType("Entfall");
-			 						else
-			 							v.setType("Vertretung");
-			 					}
-			 					else if(type.equals("room"))
-			 						v.setRoom(spalte.text());
-			 					else if(type.equals("desc"))
-			 						v.setDesc(spalte.text());
-			 					i++;
-			 				}
-			 	 			
-			 				if(!v.getLesson().equals("")) {
-				 	 			kv.add(v);
-				 	 		}
-			 	 			
-			 	 			zeile = zeile.nextElementSibling();
-			 	 			
-			 			}
-				 		tag.getKlassen().put(element.text(), kv);
-			 		} catch (Throwable e) {
-		
-			 			e.printStackTrace();
-			 		}
-	 			}
-	 		}
- 		} else {
- 			boolean hasType = false;
- 			for (int i = 0; i<data.getJSONArray("columns").length(); i++) {
- 				if (data.getJSONArray("columns").getString(i).equals("type"))
- 					hasType = true;
- 			}
- 			for (Element zeile:table.select("tr.list.odd, tr.list.even")) {
- 				Vertretung v = new Vertretung();
- 				String klassen = "";
- 				int i = 0;
- 				for(Element spalte : zeile.select("td")) {
- 					String type = data.getJSONArray("columns").getString(i);
- 					if(type.equals("lesson"))
- 						v.setLesson(spalte.text());
- 					else if(type.equals("subject"))
- 						v.setSubject(spalte.text());
- 					else if(type.equals("previousSubject"))
- 						v.setPreviousSubject(spalte.text());
- 					else if(type.equals("type"))
- 						v.setType(spalte.text());
- 					else if(type.equals("type-entfall")) {
- 						if(spalte.text().equals("x"))
- 							v.setType("Entfall");
- 						else if (!hasType)
- 							v.setType("Vertretung");
- 					}
- 					else if(type.equals("room"))
- 						v.setRoom(spalte.text());
- 					else if(type.equals("previousRoom"))
- 						v.setPreviousRoom(spalte.text());
- 					else if(type.equals("desc"))
- 						v.setDesc(spalte.text());
- 					else if(type.equals("teacher"))
- 						v.setTeacher(spalte.text());
- 					else if(type.equals("previousTeacher"))
- 						v.setPreviousTeacher(spalte.text());
- 					else if(type.equals("class"))
- 						klassen = spalte.text();
- 					i++;
- 				}
- 				List<String> affectedClasses;
- 				if(data.optBoolean("classes_separated", true)) {
- 					affectedClasses = Arrays.asList(klassen.split(", "));
- 				} else {
- 					affectedClasses = new ArrayList<String>();
- 					try {
-						for (String klasse:getAllClasses()) { //TODO: Gibt es eine bessere Möglichkeit?
+	protected void parseVertretungsplanTable(Element table, JSONObject data,
+			VertretungsplanTag tag) throws JSONException {
+		if (data.optBoolean("class_in_extra_line")) {
+			for (Element element : table.select("td.inline_header")) {
+				String className = element.text();
+				if (isValidClass(className)) {
+					KlassenVertretungsplan kv = new KlassenVertretungsplan(
+							className);
+
+					Element zeile = null;
+					try {
+						zeile = element.parent().nextElementSibling();
+						if (zeile.select("td") == null) {
+							zeile = zeile.nextElementSibling();
+						}
+						while (zeile != null
+								&& !zeile.select("td").attr("class")
+										.equals("list inline_header")) {
+							Vertretung v = new Vertretung();
+
+							int i = 0;
+							for (Element spalte : zeile.select("td")) {
+								String type = data.getJSONArray("columns")
+										.getString(i);
+								if (type.equals("lesson"))
+									v.setLesson(spalte.text());
+								else if (type.equals("subject"))
+									v.setSubject(spalte.text());
+								else if (type.equals("previousSubject"))
+									v.setPreviousSubject(spalte.text());
+								else if (type.equals("type"))
+									v.setType(spalte.text());
+								else if (type.equals("type-entfall")) {
+									if (spalte.text().equals("x"))
+										v.setType("Entfall");
+									else
+										v.setType("Vertretung");
+								} else if (type.equals("room"))
+									v.setRoom(spalte.text());
+								else if (type.equals("desc"))
+									v.setDesc(spalte.text());
+								i++;
+							}
+
+							if (v.getType() == null)
+								v.setType("Vertretung");
+
+							if (!v.getLesson().equals("")) {
+								kv.add(v);
+							}
+
+							zeile = zeile.nextElementSibling();
+
+						}
+						tag.getKlassen().put(element.text(), kv);
+					} catch (Throwable e) {
+
+						e.printStackTrace();
+					}
+				}
+			}
+		} else {
+			boolean hasType = false;
+			for (int i = 0; i < data.getJSONArray("columns").length(); i++) {
+				if (data.getJSONArray("columns").getString(i).equals("type"))
+					hasType = true;
+			}
+			for (Element zeile : table
+					.select("tr.list.odd:not(:has(td.inline_header)), tr.list.even:not(:has(td.inline_header))")) {
+				Vertretung v = new Vertretung();
+				String klassen = "";
+				int i = 0;
+				for (Element spalte : zeile.select("td")) {
+					String type = data.getJSONArray("columns").getString(i);
+					if (type.equals("lesson"))
+						v.setLesson(spalte.text());
+					else if (type.equals("subject"))
+						v.setSubject(spalte.text());
+					else if (type.equals("previousSubject"))
+						v.setPreviousSubject(spalte.text());
+					else if (type.equals("type"))
+						v.setType(spalte.text());
+					else if (type.equals("type-entfall")) {
+						if (spalte.text().equals("x"))
+							v.setType("Entfall");
+						else if (!hasType)
+							v.setType("Vertretung");
+					} else if (type.equals("room"))
+						v.setRoom(spalte.text());
+					else if (type.equals("previousRoom"))
+						v.setPreviousRoom(spalte.text());
+					else if (type.equals("desc"))
+						v.setDesc(spalte.text());
+					else if (type.equals("teacher"))
+						v.setTeacher(spalte.text());
+					else if (type.equals("previousTeacher"))
+						v.setPreviousTeacher(spalte.text());
+					else if (type.equals("class"))
+						klassen = spalte.text().replace("(", "")
+								.replace(")", "");
+					i++;
+				}
+
+				if (v.getType() == null)
+					v.setType("Vertretung");
+
+				List<String> affectedClasses;
+				if (data.optBoolean("classes_separated", true)) {
+					affectedClasses = Arrays.asList(klassen.split(", "));
+				} else {
+					affectedClasses = new ArrayList<String>();
+					try {
+						for (String klasse : getAllClasses()) { // TODO: Gibt es
+																// eine bessere
+																// Möglichkeit?
 							StringBuilder regex = new StringBuilder();
-							for(char character:klasse.toCharArray()) {
+							for (char character : klasse.toCharArray()) {
 								regex.append(character);
 								regex.append(".*");
 							}
-							if(klassen.matches(regex.toString()))
+							if (klassen.matches(regex.toString()))
 								affectedClasses.add(klasse);
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
- 				}
- 				for(String klasse:affectedClasses) {
- 					if(isValidClass(klasse)) {
-	 					KlassenVertretungsplan kv = tag.getKlassen().get(klasse);
-		 				if (kv == null)
-		 					kv = new KlassenVertretungsplan(klasse);	
-		 				kv.add(v);
+				}
+				for (String klasse : affectedClasses) {
+					if (isValidClass(klasse)) {
+						KlassenVertretungsplan kv = tag.getKlassen()
+								.get(klasse);
+						if (kv == null)
+							kv = new KlassenVertretungsplan(klasse);
+						kv.add(v);
 						tag.getKlassen().put(klasse, kv);
- 					}
- 				}
- 			}
- 		}
+					}
+				}
+			}
+		}
 	}
-	
+
 	/**
 	 * Parst eine "Nachrichten zum Tag"-Tabelle aus Untis-Vertretungsplänen
-	 * @param table das <code>table</code>-Element des HTML-Dokuments, das geparst werden soll
-	 * @param data Daten von der Schule (aus <code>Schule.getData()</code>)
-	 * @param tag der {@link VertretungsplanTag} in dem die Nachrichten gespeichert werden sollen
+	 * 
+	 * @param table
+	 *            das <code>table</code>-Element des HTML-Dokuments, das geparst
+	 *            werden soll
+	 * @param data
+	 *            Daten von der Schule (aus <code>Schule.getData()</code>)
+	 * @param tag
+	 *            der {@link VertretungsplanTag} in dem die Nachrichten
+	 *            gespeichert werden sollen
 	 */
-	protected void parseNachrichten(Element table, JSONObject data, VertretungsplanTag tag) {
-		Elements zeilen = table.select("tr:not(:contains(Nachrichten zum Tag))");
- 		for ( Element i:zeilen ) {	
- 			Elements spalten = i.select("td");
- 			String info = "";
- 			for (Element b:spalten) {
- 				info += "\n" + TextNode.createFromEncoded(b.html(), null).getWholeText();			 		 				
- 			}
- 			info = info.substring(1); //remove first \n
- 			tag.getNachrichten().add(info); 			
- 		}
+	protected void parseNachrichten(Element table, JSONObject data,
+			VertretungsplanTag tag) {
+		Elements zeilen = table
+				.select("tr:not(:contains(Nachrichten zum Tag))");
+		for (Element i : zeilen) {
+			Elements spalten = i.select("td");
+			String info = "";
+			for (Element b : spalten) {
+				info += "\n"
+						+ TextNode.createFromEncoded(b.html(), null)
+								.getWholeText();
+			}
+			info = info.substring(1); // remove first \n
+			tag.getNachrichten().add(info);
+		}
 	}
-	
+
+	protected VertretungsplanTag parseMonitorVertretungsplanTag(Document doc,
+			JSONObject data) throws JSONException {
+		VertretungsplanTag tag = new VertretungsplanTag();
+		tag.setDatum(doc.select(".mon_title").first().text()
+				.replaceAll(" \\(Seite \\d / \\d\\)", ""));
+		if (data.optBoolean("stand_links", false)) {
+			tag.setStand(doc.select("body").html()
+					.substring(0, doc.select("body").html().indexOf("<p>") - 1));
+		} else {
+			Element stand = doc.select("table.mon_head td[align=right] p")
+					.first();
+			String info = stand.text();
+			tag.setStand(info.substring(info.indexOf("Stand:")));
+		}
+
+		// NACHRICHTEN
+		if (doc.select("table.info").size() > 0)
+			parseNachrichten(doc.select("table.info").first(), data, tag);
+
+		// VERTRETUNGSPLAN
+		parseVertretungsplanTable(doc, data, tag);
+
+		return tag;
+	}
+
 	private boolean isValidClass(String klasse) {
-		if(Arrays.asList(EXCLUDED_CLASS_NAMES).contains(klasse)) {
+		if (Arrays.asList(EXCLUDED_CLASS_NAMES).contains(klasse)) {
 			return false;
-		} else if (schule.getData().has("exclude_classes") &&
-				contains(schule.getData().getJSONArray("exclude_classes"), klasse)) {
+		} else if (schule.getData().has("exclude_classes")
+				&& contains(schule.getData().getJSONArray("exclude_classes"),
+						klasse)) {
 			return false;
 		}
 		return true;
 	}
-	
+
 	private boolean contains(JSONArray array, String string) {
-		for(int i = 0; i<array.length(); i++) {
-			if(array.getString(i).equals(string))
+		for (int i = 0; i < array.length(); i++) {
+			if (array.getString(i).equals(string))
 				return true;
 		}
 		return false;

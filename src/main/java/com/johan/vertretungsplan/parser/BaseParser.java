@@ -20,7 +20,10 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.json.JSONException;
 
 import com.johan.vertretungsplan.objects.Schule;
@@ -36,9 +39,15 @@ public abstract class BaseParser {
 	 * Die Schule, deren Vertretungsplan geparst werden soll
 	 */
 	protected Schule schule;
+	protected Executor executor;
+	protected String username;
+	protected String password;
+	protected CookieStore cookieStore;
 
 	public BaseParser(Schule schule) {
 		this.schule = schule;
+		this.cookieStore = new BasicCookieStore();
+		this.executor = Executor.newInstance().cookieStore(cookieStore);
 	}
 	
 	/**
@@ -61,14 +70,12 @@ public abstract class BaseParser {
 	public abstract List<String> getAllClasses() throws IOException, JSONException;
 	
 	protected String httpGet(String url, String encoding) throws IOException {
-		return new String(Request.Get(url)
-	    	.execute().returnContent().asBytes(), encoding);
+		return new String(executor.execute(Request.Get(url).connectTimeout(15000).socketTimeout(15000)).returnContent().asBytes(), encoding);
 	}
 	
 	protected String httpPost(String url, String encoding, List<NameValuePair> formParams) throws IOException {
-		return new String(Request.Post(url)
-				.bodyForm(formParams)
-	    	.execute().returnContent().asBytes(), encoding);
+		return new String(executor.execute(Request.Post(url)
+				.bodyForm(formParams).connectTimeout(15000).socketTimeout(15000)).returnContent().asBytes(), encoding);
 	}
 
 	/**
@@ -84,8 +91,42 @@ public abstract class BaseParser {
 				parser = new UntisMonitorParser(schule);
 			} else if (schule.getApi().equals("untis-info")) {
 				parser = new UntisInfoParser(schule);
-			} //else if ... (andere Parser)
+			} else if (schule.getApi().equals("untis-info-headless")) {
+				parser = new UntisInfoHeadlessParser(schule);
+			} else if (schule.getApi().equals("dsbmobile")) {
+				parser = new DSBMobileParser(schule);
+			} 
+			
+			//else if ... (andere Parser)
 		}
 		return parser;
+	}
+
+	/**
+	 * @return the username
+	 */
+	public String getUsername() {
+		return username;
+	}
+
+	/**
+	 * @param username the username to set
+	 */
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	/**
+	 * @return the password
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * @param password the password to set
+	 */
+	public void setPassword(String password) {
+		this.password = password;
 	}
 }

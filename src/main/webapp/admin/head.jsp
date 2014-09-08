@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ladda-bootstrap/0.1.0/ladda-themeless.min.css">
 
+<link rel="icon" type="image/x-icon" href="http://vertretungsplan-johan98.rhcloud.com/admin/favicon.ico">
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+<link type="image/x-icon" href="favicon.ico">
+
 <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 <!--[if lt IE 9]>

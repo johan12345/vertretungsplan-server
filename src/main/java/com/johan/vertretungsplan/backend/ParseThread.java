@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
+import org.apache.http.client.fluent.Executor;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -22,6 +23,7 @@ import com.johan.vertretungsplan.objects.Schule;
 import com.johan.vertretungsplan.objects.Vertretungsplan;
 import com.johan.vertretungsplan.objects.VertretungsplanTag;
 import com.johan.vertretungsplan.parser.BaseParser;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -33,17 +35,18 @@ public class ParseThread implements Callable<ParseThreadResult> {
 	
 	private String schoolData;
 	private String schoolId;
-	private DBCollection coll;
+	private DB db;
 	private boolean test;
-	public ParseThread(String schoolId, String schoolData, DBCollection coll, boolean test) {
+	public ParseThread(String schoolId, String schoolData, DB db, boolean test) {
 		this.schoolId = schoolId;
 		this.schoolData = schoolData;
-		this.coll = coll;
+		this.db = db;
 		this.test = test;
 	}
 	public ParseThreadResult call() {
 		try {
 			Gson gson = new Gson();
+			DBCollection coll = db.getCollection("schools");
 			
 			ParseResult result = parse();
 			if(!test) {
@@ -82,22 +85,64 @@ public class ParseThread implements Callable<ParseThreadResult> {
 	public ParseResult parse() throws IOException {
 		JSONObject json = new JSONObject(schoolData);
 		Schule schule = Schule.fromJSON(schoolId, json);
+		DBCollection cookiesColl = db.getCollection("cookies");
+		
+		String login = null;
+		String password = null;
+		DBObject reg = null;
+		DBCollection regColl = null;
+		if (schule.getData().has("login")) {
+			regColl = db.getCollection("registrations");
+			BasicDBObject query2 = new BasicDBObject("schoolId", schoolId);
+			query2.append("login", new BasicDBObject("$ne", ""));
+			query2.append("password", new BasicDBObject("$ne", ""));
+			DBCursor regs = regColl.find(query2);
+			int n = regs.count();
+			int rand = (int) Math.floor(Math.random() * (n-1));
+			regs.skip(rand);
+			reg = regs.next();
+			regs.close();
+			
+			login = (String) reg.get("login");
+			password = (String) reg.get("password");
+		}
 		
 		BaseParser parser = BaseParser.getInstance(schule);
-		Vertretungsplan v = parser.getVertretungsplan();
-		
-		List<BaseAdditionalInfoParser> additionalInfoParsers = new ArrayList<BaseAdditionalInfoParser>();
-		for(String type:schule.getAdditionalInfos()) {
-			additionalInfoParsers.add(BaseAdditionalInfoParser.getInstance(type));
+		if (login != null && password != null) {
+			parser.setUsername(login);
+			parser.setPassword(password);
 		}
+		try {
+			Vertretungsplan v = parser.getVertretungsplan();
 		
-		for(BaseAdditionalInfoParser additionalInfoParser:additionalInfoParsers) {
-			v.getAdditionalInfos().add(additionalInfoParser.getAdditionalInfo());
+			List<BaseAdditionalInfoParser> additionalInfoParsers = new ArrayList<BaseAdditionalInfoParser>();
+			for(String type:schule.getAdditionalInfos()) {
+				additionalInfoParsers.add(BaseAdditionalInfoParser.getInstance(type));
+			}
+			
+			for(BaseAdditionalInfoParser additionalInfoParser:additionalInfoParsers) {
+				v.getAdditionalInfos().add(additionalInfoParser.getAdditionalInfo());
+			}
+			ParseResult result = new ParseResult();
+			result.v = v;
+			result.classes = parser.getAllClasses();
+			
+			if (reg != null) {
+				regColl.remove(reg);
+				reg.put("password_invalid", false);
+				regColl.insert(reg);
+			}
+			
+			return result;
+		} catch (IOException e) {
+			if (reg != null && e.getMessage().contains("login")) {
+				regColl.remove(reg);
+				reg.put("password_invalid", true);
+				regColl.insert(reg);
+			}
+			cookiesColl.remove(new BasicDBObject("_id", schule.getId()));
+			throw e;
 		}
-		ParseResult result = new ParseResult();
-		result.v = v;
-		result.classes = parser.getAllClasses();
-		return result;
 	}
 	
 	public class ParseResult {
@@ -194,8 +239,8 @@ public class ParseThread implements Callable<ParseThreadResult> {
 		Sender sender = new Sender(Settings.GCM_API_KEY);
 		
 		for(Entry<String, ChangeType> entry:changedClasses.entrySet()) {
-			BasicDBObject query = new BasicDBObject("schoolId", schoolId)
-				.append("klasse", entry.getKey());
+			BasicDBObject query = new BasicDBObject("schoolId", schoolId);
+			query.append("klasse", entry.getKey());
 			DBCursor cursor = coll.find(query);
 			
 			int i = 0;
@@ -217,6 +262,31 @@ public class ParseThread implements Callable<ParseThreadResult> {
 			}
 			
 			message.append("   " + entry.getKey() + ": " + i + " Nachrichten versandt" + "\n");
+		}
+		if (changedClasses.size() > 0) {
+			BasicDBObject query = new BasicDBObject("schoolId", schoolId);
+			query.append("klasse", "Alle");
+			DBCursor cursor = coll.find(query);
+			
+			int i = 0;
+			try {
+			   while(cursor.hasNext()) {
+			       DBObject sub = cursor.next();	
+			       Result result = null;
+			       if(changedClasses.containsValue(ChangeType.NOTIFICATION))
+						result = doSendViaGcm("Neue Änderungen auf dem Vertretungsplan", sender, sub, coll);
+			       else if (changedClasses.containsValue(ChangeType.NO_NOTIFICATION))
+						result = doSendViaGcm("NO_NOTIFICATION", sender, sub, coll);
+			       if(result != null && result.getErrorCodeName() != null) {
+			    	   message.append("        GCM Fehler: " + result.getErrorCodeName());
+			       }
+			       i++;
+			   }
+			} finally {
+			   cursor.close();
+			}
+			
+			message.append("   Alle: " + i + " Nachrichten versandt" + "\n");
 		}
 		return message.toString();
 	}

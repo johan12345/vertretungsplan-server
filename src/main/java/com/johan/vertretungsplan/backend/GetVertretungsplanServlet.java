@@ -18,13 +18,28 @@ public class GetVertretungsplanServlet extends HttpServlet {
 		int version = Integer.parseInt(req.getParameter("v"));
 		if(version >= Settings.MIN_SUPPORTED_VERSION) {
 			String schoolId = req.getParameter("school");
+			String regId = req.getParameter("regId");
 			
 			MongoClient client = DBManager.getInstance();
-			DB db = client.getDB("vertretungsplan");			
+			DB db = client.getDB("vertretungsplan");
+			
+			if (regId != null) { //TODO: remove this 
+				DBCollection regColl = db.getCollection("registrations");
+				BasicDBObject query = new BasicDBObject("_id", regId);
+				DBObject reg = regColl.findOne(query);
+				if (reg.containsField("password_invalid") && (Boolean) reg.get("password_invalid") == true) {
+					resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					resp.setContentType("text/plain");
+					resp.setCharacterEncoding("UTF-8");
+					resp.getWriter().print("unauthorized");
+					resp.getWriter().close();
+					return;
+				}
+			}
 			
 			DBCollection coll = db.getCollection("schools");		
-			BasicDBObject query = new BasicDBObject("_id", schoolId);
-			DBObject school = coll.findOne(query);
+			BasicDBObject query2 = new BasicDBObject("_id", schoolId);
+			DBObject school = coll.findOne(query2);
 			
 			if(school != null) {
 				resp.setStatus(HttpServletResponse.SC_OK);

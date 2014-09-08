@@ -16,6 +16,8 @@ public class RegisterServlet extends HttpServlet {
 		String deviceInfo = req.getParameter("deviceInfo");
 		String klasse = req.getParameter("klasse");
 		String schoolId = req.getParameter("school");
+		String login = req.getParameter("login");
+		String password = req.getParameter("password");
 		long timestamp = System.currentTimeMillis();
 		
 		MongoClient client = DBManager.getInstance();
@@ -28,6 +30,10 @@ public class RegisterServlet extends HttpServlet {
 			.append("klasse", klasse)
 			.append("schoolId", schoolId)
 			.append("timestamp", timestamp);
+		if (login != null)
+			sub.append("login", login);
+		if (password != null)
+			sub.append("password", password);
 		coll.save(sub);
 	}
 }

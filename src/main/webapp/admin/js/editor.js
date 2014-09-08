@@ -1,4 +1,6 @@
 $(function() {	
+	$('.main').scrollspy({ target: '.sidebar', offset:80 });
+
 	var editor = ace.edit("editor-text");
     editor.setTheme("ace/theme/monokai");
     editor.getSession().setMode("ace/mode/json");

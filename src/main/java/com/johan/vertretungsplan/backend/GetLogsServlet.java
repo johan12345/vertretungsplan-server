@@ -54,6 +54,8 @@ public class GetLogsServlet extends HttpServlet {
 		}	
 		resp.getWriter().println("]");
 		resp.getWriter().close();
+		
+		logs.close();
 
 	}
 }

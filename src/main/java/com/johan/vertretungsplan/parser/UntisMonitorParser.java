@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,7 +44,7 @@ public class UntisMonitorParser extends UntisCommonParser {
 	}
 	
 	public Vertretungsplan getVertretungsplan() throws IOException, JSONException {	
-		handleLogin();
+		new LoginHandler(schule).handleLogin(executor, cookieStore, username, password); //
 		
 		JSONArray urls = schule.getData().getJSONArray("urls");
 		String encoding = schule.getData().getString("encoding");
@@ -60,7 +58,7 @@ public class UntisMonitorParser extends UntisCommonParser {
 		LinkedHashMap<String, VertretungsplanTag> tage = new LinkedHashMap<String, VertretungsplanTag>();
 		for(Document doc:docs) {
 			if (doc.title().contains("Untis")) {
-				VertretungsplanTag tag = parseVertretungsplanTag(doc, schule.getData());
+				VertretungsplanTag tag = parseMonitorVertretungsplanTag(doc, schule.getData());
 				if(!tage.containsKey(tag.getDatum())) {
 					tage.put(tag.getDatum(), tag);
 				} else {
@@ -76,19 +74,6 @@ public class UntisMonitorParser extends UntisCommonParser {
 		v.setTage(new ArrayList<VertretungsplanTag>(tage.values()));
 		
 		return v;
-	}
-	
-	private void handleLogin() throws JSONException, IOException {
-		if (!schule.getData().has("login"))
-			return;
-		
-		String url = schule.getData().getJSONObject("login").getString("url");
-		JSONObject data = schule.getData().getJSONObject("login").getJSONObject("data");
-		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-		for (String name:JSONObject.getNames(data)) {
-			nvps.add(new BasicNameValuePair(name, data.getString(name)));
-		}
-		httpPost(url, schule.getData().getString("encoding"), nvps);
 	}
 
 	private void loadUrl(String url, String encoding, boolean following, List<Document> docs, String startUrl) throws IOException {
@@ -107,27 +92,6 @@ public class UntisMonitorParser extends UntisCommonParser {
 	
 	private void loadUrl(String url, String encoding, boolean following, List<Document> docs) throws IOException {
 		loadUrl(url, encoding, following, docs, url);
-	}
-	
-	protected VertretungsplanTag parseVertretungsplanTag(Document doc, JSONObject data) throws JSONException {
- 		VertretungsplanTag tag = new VertretungsplanTag();
-		tag.setDatum(doc.select(".mon_title").first().text().replaceAll(" \\(Seite \\d / \\d\\)", ""));	
-		if(data.optBoolean("stand_links", false)) {
-			tag.setStand(doc.select("body").html().substring(0, doc.select("body").html().indexOf("<p>")-1));
-		} else {
-			Element stand = doc.select("table.mon_head td[align=right] p").first();
-			String info = stand.text();
-			tag.setStand(info.substring(info.indexOf("Stand:")));
-		}
- 		
- 		//NACHRICHTEN
-		if(doc.select("table.info").size() > 0)
-			parseNachrichten(doc.select("table.info").first(), data, tag);
- 		
- 		//VERTRETUNGSPLAN
- 		parseVertretungsplanTable(doc, data, tag);	 		
- 		
- 		return tag;
 	}
 	
 	public List<String> getAllClasses() throws JSONException {

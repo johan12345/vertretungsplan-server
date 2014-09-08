@@ -5,14 +5,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          metadata-complete="false">
-	<servlet>
-		<servlet-name>VertretungsplanCron</servlet-name>
-		<servlet-class>com.johan.vertretungsplan.backend.CronJobServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>VertretungsplanCron</servlet-name>
-		<url-pattern>/cron/vertretungsplan</url-pattern>
-	</servlet-mapping>
 	
 	<servlet>
 		<servlet-name>GetVertretungsplan</servlet-name>
@@ -94,6 +86,24 @@
 		<servlet-name>Check</servlet-name>
 		<url-pattern>/admin/check</url-pattern>
 	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>CheckLogin</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.CheckLoginServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CheckLogin</servlet-name>
+		<url-pattern>/login</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>Website</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.WebsiteServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Website</servlet-name>
+		<url-pattern>/website/*</url-pattern>
+	</servlet-mapping>
          
 	<filter>
 		<filter-name>CORS</filter-name>
@@ -127,5 +137,11 @@
 			<form-error-page>/signin-failed.html</form-error-page>
 		</form-login-config>
 	</login-config>
+	
+	<listener>
+	    <listener-class>
+	        com.johan.vertretungsplan.backend.JobContextListener
+	    </listener-class>
+	  </listener>
 </web-app>
 

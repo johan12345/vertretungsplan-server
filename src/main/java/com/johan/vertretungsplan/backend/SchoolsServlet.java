@@ -82,5 +82,6 @@ public class SchoolsServlet extends HttpServlet {
 		} else {
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}
+		cursor.close();
 	}
 }

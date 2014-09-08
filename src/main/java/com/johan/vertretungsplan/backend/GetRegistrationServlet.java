@@ -30,5 +30,6 @@ public class GetRegistrationServlet extends HttpServlet {
 		} else {
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}
+		cursor.close();
 	}
 }
