@@ -1,10 +1,14 @@
-/target
-target
-.settings/*
-!.settings/.jsdtscope
-.classpath
-src/main/java/com/johan/vertretungsplan/backend/Settings.java
-.openshift/config/tomcat-users.xml
-src/main/webapp/images/*
-src/main/webapp/loaderio-f1f6a899cf702bee8faaa63b09c8fe6c.txt
-Thumbs.db
+# Java class files
+*.class
+
+# generated files
+build/
+target/
+
+# Eclipse project files
+.settings/
+
+# Package Files #
+*.war
+
+src/com/johan/vertretungsplan/backend/Settings.java
