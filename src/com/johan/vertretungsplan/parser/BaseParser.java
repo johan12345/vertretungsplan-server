@@ -18,6 +18,8 @@ package com.johan.vertretungsplan.parser;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
@@ -30,9 +32,9 @@ import com.johan.vertretungsplan.objects.Schule;
 import com.johan.vertretungsplan.objects.Vertretungsplan;
 
 /**
- * Ein Parser für einen Vertretungsplan.
- * Er erhält Informationen aus der JSON-Datei für eine Schule und liefert
- * den abgerufenen und geparsten Vertretungsplan zurück.
+ * Ein Parser für einen Vertretungsplan. Er erhält Informationen aus der
+ * JSON-Datei für eine Schule und liefert den abgerufenen und geparsten
+ * Vertretungsplan zurück.
  */
 public abstract class BaseParser {
 	/**
@@ -49,44 +51,68 @@ public abstract class BaseParser {
 		this.cookieStore = new BasicCookieStore();
 		this.executor = Executor.newInstance().cookieStore(cookieStore);
 	}
-	
+
 	/**
-	 * Ruft den Vertretungsplan ab und parst ihn.
-	 * Wird immer asynchron ausgeführt.
+	 * Ruft den Vertretungsplan ab und parst ihn. Wird immer asynchron
+	 * ausgeführt.
+	 * 
 	 * @return Der geparste {@link Vertretungsplan}
 	 * @throws IOException
 	 * @throws JSONException
 	 */
-	public abstract Vertretungsplan getVertretungsplan() throws IOException, JSONException;
-	
+	public abstract Vertretungsplan getVertretungsplan() throws IOException,
+			JSONException;
+
 	/**
-	 * Gibt eine Liste aller verfügbaren Klassen zurück.
-	 * Wird immer asynchron ausgeführt.
-	 * @return Eine Liste aller verfügbaren Klassen für diese Schule
-	 *  (auch die, die nicht aktuell vom Vertretungsplan betroffen sind)
+	 * Gibt eine Liste aller verfügbaren Klassen zurück. Wird immer asynchron
+	 * ausgeführt.
+	 * 
+	 * @return Eine Liste aller verfügbaren Klassen für diese Schule (auch die,
+	 *         die nicht aktuell vom Vertretungsplan betroffen sind)
 	 * @throws IOException
 	 * @throws JSONException
 	 */
-	public abstract List<String> getAllClasses() throws IOException, JSONException;
-	
+	public abstract List<String> getAllClasses() throws IOException,
+			JSONException;
+
 	protected String httpGet(String url, String encoding) throws IOException {
-		return new String(executor.execute(Request.Get(url).connectTimeout(15000).socketTimeout(15000)).returnContent().asBytes(), encoding);
+		return httpGet(url, encoding, null);
 	}
-	
-	protected String httpPost(String url, String encoding, List<NameValuePair> formParams) throws IOException {
-		return new String(executor.execute(Request.Post(url)
-				.bodyForm(formParams).connectTimeout(15000).socketTimeout(15000)).returnContent().asBytes(), encoding);
+
+	protected String httpGet(String url, String encoding,
+			Map<String, String> headers) throws IOException {
+		Request request = Request.Get(url).connectTimeout(15000)
+				.socketTimeout(15000);
+		if (headers != null) {
+			for (Entry<String, String> entry : headers.entrySet()) {
+				request.addHeader(entry.getKey(), entry.getValue());
+			}
+		}
+		return new String(executor.execute(request).returnContent().asBytes(),
+				encoding);
+	}
+
+	protected String httpPost(String url, String encoding,
+			List<NameValuePair> formParams) throws IOException {
+		return new String(executor
+				.execute(
+						Request.Post(url).bodyForm(formParams)
+								.connectTimeout(15000).socketTimeout(15000))
+				.returnContent().asBytes(), encoding);
 	}
 
 	/**
-	 * Erstelle einen neuen Parser für eine Schule.
-	 * Liefert automatisch eine passende Unterklasse.
-	 * @param schule die Schule, für die ein Parser erstellt werden soll
-	 * @return Eine Unterklasse von {@link BaseParser}, die zur übergebenen Schule passt
+	 * Erstelle einen neuen Parser für eine Schule. Liefert automatisch eine
+	 * passende Unterklasse.
+	 * 
+	 * @param schule
+	 *            die Schule, für die ein Parser erstellt werden soll
+	 * @return Eine Unterklasse von {@link BaseParser}, die zur übergebenen
+	 *         Schule passt
 	 */
 	public static BaseParser getInstance(Schule schule) {
 		BaseParser parser = null;
-		if(schule != null) {
+		if (schule != null) {
 			if (schule.getApi().equals("untis-monitor")) {
 				parser = new UntisMonitorParser(schule);
 			} else if (schule.getApi().equals("untis-info")) {
@@ -95,9 +121,11 @@ public abstract class BaseParser {
 				parser = new UntisInfoHeadlessParser(schule);
 			} else if (schule.getApi().equals("dsbmobile")) {
 				parser = new DSBMobileParser(schule);
-			} 
-			
-			//else if ... (andere Parser)
+			} else if (schule.getApi().equals("dsblight")) {
+				parser = new DSBLightParser(schule);
+			}
+
+			// else if ... (andere Parser)
 		}
 		return parser;
 	}
@@ -110,7 +138,8 @@ public abstract class BaseParser {
 	}
 
 	/**
-	 * @param username the username to set
+	 * @param username
+	 *            the username to set
 	 */
 	public void setUsername(String username) {
 		this.username = username;
@@ -124,7 +153,8 @@ public abstract class BaseParser {
 	}
 
 	/**
-	 * @param password the password to set
+	 * @param password
+	 *            the password to set
 	 */
 	public void setPassword(String password) {
 		this.password = password;
