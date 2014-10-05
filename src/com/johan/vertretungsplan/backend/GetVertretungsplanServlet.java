@@ -12,7 +12,6 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.util.JSON;
 @SuppressWarnings("serial")
 public class GetVertretungsplanServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {	
@@ -46,8 +45,7 @@ public class GetVertretungsplanServlet extends HttpServlet {
 				resp.setStatus(HttpServletResponse.SC_OK);
 				resp.setContentType("application/json");
 				resp.setCharacterEncoding("UTF-8");
-				Object vertretungsplan = school.get("vertretungsplan");
-				resp.getWriter().print(JSON.serialize(vertretungsplan));
+				resp.getWriter().print((String) school.get("vertretungsplan"));
 				resp.getWriter().close();
 			} else {
 				resp.setStatus(HttpServletResponse.SC_NOT_FOUND);

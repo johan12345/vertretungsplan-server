@@ -12,7 +12,6 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.util.JSON;
 @SuppressWarnings("serial")
 public class GetKlassenServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {	
@@ -26,8 +25,8 @@ public class GetKlassenServlet extends HttpServlet {
 		DBObject school = coll.findOne(query);
 		if(school != null) {
 			resp.setStatus(HttpServletResponse.SC_OK);
-			Object schools = school.get("classes");
-			resp.getWriter().print(JSON.serialize(schools));
+			String schools = (String) school.get("classes");
+			resp.getWriter().print(schools);
 			resp.getWriter().close();
 		} else {
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
