@@ -28,6 +28,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.util.JSON;
 
 public class ParseThread implements Callable<ParseThreadResult> {
 	
@@ -58,8 +59,8 @@ public class ParseThread implements Callable<ParseThreadResult> {
 					school = new BasicDBObject("_id", schoolId);
 				}
 				
-				school.put("vertretungsplan", gson.toJson(result.v));
-				school.put("classes", gson.toJson(result.classes));
+				school.put("vertretungsplan", JSON.parse(gson.toJson(result.v)));
+				school.put("classes", JSON.parse(gson.toJson(result.classes)));
 				coll.save(school);
 				
 				String gcmResult = "";
