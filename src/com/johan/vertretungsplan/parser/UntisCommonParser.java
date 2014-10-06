@@ -19,11 +19,8 @@ package com.johan.vertretungsplan.parser;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,7 +36,6 @@ import com.johan.vertretungsplan.objects.KlassenVertretungsplan;
 import com.johan.vertretungsplan.objects.Schule;
 import com.johan.vertretungsplan.objects.Vertretung;
 import com.johan.vertretungsplan.objects.VertretungsplanTag;
-import com.paour.comparator.NaturalOrderComparator;
 
 /**
  * Enthält gemeinsam genutzte Funktionen für die Parser für
@@ -180,26 +176,50 @@ public abstract class UntisCommonParser extends BaseParser {
 					v.setType("Vertretung");
 
 				List<String> affectedClasses;
-				if (data.optBoolean("classes_separated", true)) {
-					affectedClasses = Arrays.asList(klassen.split(", "));
-				} else {
+				
+				// Detect things like "5-12"
+				Pattern pattern = Pattern.compile("(\\d+) ?- ?(\\d+)");
+				Matcher matcher = pattern.matcher(klassen);
+				if (matcher.find()) {
 					affectedClasses = new ArrayList<String>();
+					int min = Integer.parseInt(matcher.group(1));
+					int max = Integer.parseInt(matcher.group(2));
 					try {
-						for (String klasse : getAllClasses()) { // TODO: Gibt es
-																// eine bessere
-																// Möglichkeit?
-							StringBuilder regex = new StringBuilder();
-							for (char character : klasse.toCharArray()) {
-								regex.append(character);
-								regex.append(".*");
+						for (String klasse : getAllClasses()) {
+							Pattern pattern2 = Pattern.compile("\\d+");
+							Matcher matcher2 = pattern2.matcher(klasse);
+							if (matcher2.find()) {
+								int num = Integer.parseInt(matcher2.group());
+								if (min <= num && num <= max)
+									affectedClasses.add(klasse);
 							}
-							if (klassen.matches(regex.toString()))
-								affectedClasses.add(klasse);
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+				} else {				
+					if (data.optBoolean("classes_separated", true)) {
+						affectedClasses = Arrays.asList(klassen.split(", "));
+					} else {
+						affectedClasses = new ArrayList<String>();
+						try {
+							for (String klasse : getAllClasses()) { // TODO: Gibt es
+																	// eine bessere
+																	// Möglichkeit?
+								StringBuilder regex = new StringBuilder();
+								for (char character : klasse.toCharArray()) {
+									regex.append(character);
+									regex.append(".*");
+								}
+								if (klassen.matches(regex.toString()))
+									affectedClasses.add(klasse);
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
 				}
+				
 				for (String klasse : affectedClasses) {
 					if (isValidClass(klasse)) {
 						KlassenVertretungsplan kv = tag.getKlassen()
