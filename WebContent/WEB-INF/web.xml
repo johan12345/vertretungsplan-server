@@ -104,6 +104,15 @@
 		<servlet-name>Website</servlet-name>
 		<url-pattern>/website/*</url-pattern>
 	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>CheckHealth</servlet-name>
+		<servlet-class>com.johan.vertretungsplan.backend.CheckHealthServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CheckHealth</servlet-name>
+		<url-pattern>/health</url-pattern>
+	</servlet-mapping>
          
 	<filter>
 		<filter-name>CORS</filter-name>
