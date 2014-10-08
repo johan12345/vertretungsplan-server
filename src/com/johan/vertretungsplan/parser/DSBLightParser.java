@@ -23,10 +23,12 @@ public class DSBLightParser extends UntisCommonParser {
 
 	private static final String BASE_URL = "https://light.dsbcontrol.de/DSBlightWebsite/Homepage/";
 	private static final String ENCODING = "UTF-8";
+	
 
 	public DSBLightParser(Schule schule) {
 		super(schule);
 	}
+
 
 	@Override
 	public Vertretungsplan getVertretungsplan() throws IOException,

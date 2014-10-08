@@ -19,7 +19,6 @@ package com.johan.vertretungsplan.parser;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,11 +43,11 @@ import com.johan.vertretungsplan.objects.VertretungsplanTag;
  */
 public abstract class UntisCommonParser extends BaseParser {
 
-	private static final String[] EXCLUDED_CLASS_NAMES = new String[] { "-----" };
-
 	public UntisCommonParser(Schule schule) {
 		super(schule);
 	}
+
+	private static final String[] EXCLUDED_CLASS_NAMES = new String[] { "-----" };
 
 	/**
 	 * Parst eine Vertretungstabelle eines Untis-Vertretungsplans

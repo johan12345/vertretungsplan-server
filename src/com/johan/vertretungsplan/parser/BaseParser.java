@@ -17,17 +17,32 @@
 package com.johan.vertretungsplan.parser;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.json.JSONException;
 
+import com.johan.vertretungsplan.networking.MultiTrustManager;
 import com.johan.vertretungsplan.objects.Schule;
 import com.johan.vertretungsplan.objects.Vertretungsplan;
 
@@ -49,7 +64,33 @@ public abstract class BaseParser {
 	public BaseParser(Schule schule) {
 		this.schule = schule;
 		this.cookieStore = new BasicCookieStore();
-		this.executor = Executor.newInstance().cookieStore(cookieStore);
+
+		try {
+			KeyStore ks = loadKeyStore();
+			MultiTrustManager multiTrustManager = new MultiTrustManager();
+			multiTrustManager.addTrustManager(getDefaultTrustManager());
+			multiTrustManager.addTrustManager(trustManagerFromKeystore(ks));
+
+			TrustManager[] trustManagers = new TrustManager[] { multiTrustManager };
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(null, trustManagers, null);
+			SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+					sslContext,
+					new String[] { "TLSv1" },
+					null,
+					SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+
+			CloseableHttpClient httpclient = HttpClients.custom()
+					.setSSLSocketFactory(sslsf).build();
+			this.executor = Executor.newInstance(httpclient).cookieStore(
+					cookieStore);
+		} catch (KeyStoreException e) {
+			throw new RuntimeException(e);
+		} catch (GeneralSecurityException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -158,5 +199,49 @@ public abstract class BaseParser {
 	 */
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	private static X509TrustManager getDefaultTrustManager()
+			throws GeneralSecurityException {
+		return trustManagerFromKeystore(null);
+	}
+
+	private static X509TrustManager trustManagerFromKeystore(
+			final KeyStore keystore) throws GeneralSecurityException {
+		final TrustManagerFactory trustManagerFactory = TrustManagerFactory
+				.getInstance("PKIX", "SunJSSE");
+		trustManagerFactory.init(keystore);
+
+		final TrustManager[] tms = trustManagerFactory.getTrustManagers();
+
+		for (final TrustManager tm : tms) {
+			if (tm instanceof X509TrustManager) {
+				final X509TrustManager manager = X509TrustManager.class
+						.cast(tm);
+				return manager;
+			}
+		}
+		throw new IllegalStateException("Could not locate X509TrustManager!");
+	}
+
+	private KeyStore loadKeyStore() throws KeyStoreException,
+			NoSuchAlgorithmException, CertificateException, IOException {
+		InputStream is = null;
+		try {
+			KeyStore ks = KeyStore.getInstance("JKS");
+			is = getClass().getClassLoader().getResourceAsStream(
+					"resources/trustStore.jks");
+			if (is == null)
+				throw new RuntimeException();
+			ks.load(is, "Vertretungsplan".toCharArray());
+			return ks;
+		} finally {
+			if (is != null)
+				try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
 	}
 }

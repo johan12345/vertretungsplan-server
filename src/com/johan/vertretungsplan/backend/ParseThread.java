@@ -44,10 +44,10 @@ public class ParseThread implements Callable<ParseThreadResult> {
 	public ParseThreadResult call() {
 		try {
 			Gson gson = new Gson();
-			DBCollection coll = db.getCollection("schools");
 			
 			ParseResult result = parse();
 			if(!test) {
+				DBCollection coll = db.getCollection("schools");
 				BasicDBObject query = new BasicDBObject("_id", schoolId);
 				DBObject school = coll.findOne(query);
 				
@@ -89,7 +89,7 @@ public class ParseThread implements Callable<ParseThreadResult> {
 		String password = null;
 		DBObject reg = null;
 		DBCollection regColl = null;
-		if (schule.getData().has("login")) {
+		if (schule.getData().has("login") && !test) {
 			regColl = db.getCollection("registrations");
 			BasicDBObject query2 = new BasicDBObject("schoolId", schoolId);
 			query2.append("login", new BasicDBObject("$ne", ""));

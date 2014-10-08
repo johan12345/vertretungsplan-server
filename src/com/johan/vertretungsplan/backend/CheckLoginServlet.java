@@ -1,6 +1,11 @@
 package com.johan.vertretungsplan.backend;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +29,7 @@ public class CheckLoginServlet extends HttpServlet {
 		String login = req.getParameter("login");
 		String password = req.getParameter("password");
 		String schoolId = req.getParameter("schoolId");
-		Schule school = getSchoolById(schoolId); 
+		Schule school = getSchoolById(schoolId);
 		try {
 			BaseParser parser = BaseParser.getInstance(school);
 			parser.setUsername(login);
