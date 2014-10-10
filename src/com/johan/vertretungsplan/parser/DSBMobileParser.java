@@ -88,8 +88,17 @@ public class DSBMobileParser extends UntisCommonParser {
 				tag.setKlassen(sortedMap);
 			}
 		}
+		List<VertretungsplanTag> tageList = new ArrayList<VertretungsplanTag>(tage.values());
+		Collections.sort(tageList, new Comparator<VertretungsplanTag>() {
+
+			@Override
+			public int compare(VertretungsplanTag o1, VertretungsplanTag o2) {
+				return o1.getDatum().compareTo(o2.getDatum());
+			}
+			
+		});
 		Vertretungsplan v = new Vertretungsplan();
-		v.setTage(new ArrayList<VertretungsplanTag>(tage.values()));
+		v.setTage(tageList);
 		
 		String response3 = httpGet(BASE_URL + "/news/" + authId, ENCODING);
 		JSONArray json2 = new JSONArray(response3);
