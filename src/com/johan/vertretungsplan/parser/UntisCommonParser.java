@@ -175,7 +175,7 @@ public abstract class UntisCommonParser extends BaseParser {
 					v.setType("Vertretung");
 
 				List<String> affectedClasses;
-				
+
 				// Detect things like "5-12"
 				Pattern pattern = Pattern.compile("(\\d+) ?- ?(\\d+)");
 				Matcher matcher = pattern.matcher(klassen);
@@ -196,14 +196,16 @@ public abstract class UntisCommonParser extends BaseParser {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-				} else {				
+				} else {
 					if (data.optBoolean("classes_separated", true)) {
 						affectedClasses = Arrays.asList(klassen.split(", "));
 					} else {
 						affectedClasses = new ArrayList<String>();
 						try {
-							for (String klasse : getAllClasses()) { // TODO: Gibt es
-																	// eine bessere
+							for (String klasse : getAllClasses()) { // TODO:
+																	// Gibt es
+																	// eine
+																	// bessere
 																	// Möglichkeit?
 								StringBuilder regex = new StringBuilder();
 								for (char character : klasse.toCharArray()) {
@@ -218,7 +220,7 @@ public abstract class UntisCommonParser extends BaseParser {
 						}
 					}
 				}
-				
+
 				for (String klasse : affectedClasses) {
 					if (isValidClass(klasse)) {
 						KlassenVertretungsplan kv = tag.getKlassen()
@@ -267,7 +269,8 @@ public abstract class UntisCommonParser extends BaseParser {
 		VertretungsplanTag tag = new VertretungsplanTag();
 		tag.setDatum(doc.select(".mon_title").first().text()
 				.replaceAll(" \\(Seite \\d / \\d\\)", ""));
-		if (data.optBoolean("stand_links", false)) {
+		if (doc.select("table.mon_head td[align=right] p").size() == 0
+				|| schule.getData().optBoolean("stand_links", false)) {
 			tag.setStand(doc.select("body").html()
 					.substring(0, doc.select("body").html().indexOf("<p>") - 1));
 		} else {
