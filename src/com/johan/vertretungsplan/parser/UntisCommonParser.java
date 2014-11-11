@@ -136,7 +136,9 @@ public abstract class UntisCommonParser extends BaseParser {
 					hasType = true;
 			}
 			for (Element zeile : table
-					.select("tr.list.odd:not(:has(td.inline_header)), tr.list.even:not(:has(td.inline_header))")) {
+					.select("tr.list.odd:not(:has(td.inline_header)), "
+							+ "tr.list.even:not(:has(td.inline_header)), "
+							+ "tr:has(td[align=center]:has(font[color]))")) {
 				Vertretung v = new Vertretung();
 				String klassen = "";
 				int i = 0;

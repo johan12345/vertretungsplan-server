@@ -160,6 +160,8 @@ public abstract class BaseParser {
 				parser = new UntisInfoParser(schule);
 			} else if (schule.getApi().equals("untis-info-headless")) {
 				parser = new UntisInfoHeadlessParser(schule);
+			} else if (schule.getApi().equals("untis-subst")) {
+				parser = new UntisSubstitutionParser(schule);
 			} else if (schule.getApi().equals("dsbmobile")) {
 				parser = new DSBMobileParser(schule);
 			} else if (schule.getApi().equals("dsblight")) {

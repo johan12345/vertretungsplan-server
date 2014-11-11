@@ -112,6 +112,8 @@ public class ParseThread implements Callable<ParseThreadResult> {
 		}
 		try {
 			Vertretungsplan v = parser.getVertretungsplan();
+			v.setSchoolName(schule.getName());
+			v.setCity(schule.getCity());
 		
 			List<BaseAdditionalInfoParser> additionalInfoParsers = new ArrayList<BaseAdditionalInfoParser>();
 			for(String type:schule.getAdditionalInfos()) {
@@ -133,7 +135,8 @@ public class ParseThread implements Callable<ParseThreadResult> {
 			
 			return result;
 		} catch (IOException e) {
-			if (reg != null && e.getMessage().contains("login")) {
+			String msg = e.getMessage().toLowerCase();
+			if (reg != null && (msg.contains("login") || msg.contains("authorization"))) {
 				regColl.remove(reg);
 				reg.put("password_invalid", true);
 				regColl.insert(reg);

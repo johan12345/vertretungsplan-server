@@ -5,6 +5,11 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          metadata-complete="false">
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+        <welcome-file>index.htm</welcome-file>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
 	
 	<servlet>
 		<servlet-name>GetVertretungsplan</servlet-name>
@@ -126,7 +131,7 @@
 	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>Admin</web-resource-name>
-			<url-pattern>/admin/*</url-pattern>
+			<url-pattern>*.jsp</url-pattern>
 			<http-method>GET</http-method>
 			<http-method>POST</http-method>
 		</web-resource-collection>

@@ -34,19 +34,11 @@ public class GetVertretungsplanServlet extends HttpServlet {
 				DBObject reg = regColl.findOne(query);
 				if (reg.containsField("password_invalid") && (Boolean) reg
 								.get("password_invalid") == true) {
-					resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					resp.setContentType("text/plain");
-					resp.setCharacterEncoding("UTF-8");
-					resp.getWriter().print("unauthorized");
-					resp.getWriter().close();
+					unauthorized(resp);
 					return;
 				}
 				if (!schoolId.equals((String) reg.get("schoolId"))) {
-					resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					resp.setContentType("text/plain");
-					resp.setCharacterEncoding("UTF-8");
-					resp.getWriter().print("unauthorized");
-					resp.getWriter().close();
+					unauthorized(resp);
 					return;
 				}
 			} else {
@@ -57,12 +49,7 @@ public class GetVertretungsplanServlet extends HttpServlet {
 				Schule school = Schule.fromJSON(schoolId, new JSONObject(
 						jsonString));
 				if (school.getData().has("login")) {
-					resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					resp.setContentType("text/plain");
-					resp.setCharacterEncoding("UTF-8");
-					resp.getWriter().print("unauthorized");
-					resp.getWriter().close();
-					return;
+					unauthorized(resp);
 				}
 			}
 
@@ -86,5 +73,13 @@ public class GetVertretungsplanServlet extends HttpServlet {
 			resp.getWriter().print("please update");
 			resp.getWriter().close();
 		}
+	}
+
+	private void unauthorized(HttpServletResponse resp) throws IOException {
+		resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		resp.setContentType("text/plain");
+		resp.setCharacterEncoding("UTF-8");
+		resp.getWriter().print("unauthorized");
+		resp.getWriter().close();
 	}
 }
