@@ -66,7 +66,7 @@ public abstract class UntisCommonParser extends BaseParser {
 			VertretungsplanTag tag) throws JSONException {
 		if (data.optBoolean("class_in_extra_line")) {
 			for (Element element : table.select("td.inline_header")) {
-				String className = element.text();
+				String className = getClassName(element.text(), data);
 				if (isValidClass(className)) {
 					KlassenVertretungsplan kv = new KlassenVertretungsplan(
 							className);
@@ -107,7 +107,10 @@ public abstract class UntisCommonParser extends BaseParser {
 									v.setPreviousTeacher(spalte.text());
 								else if (type.equals("desc"))
 									v.setDesc(spalte.text());
-								else if (type.equals("previousRoom"))
+								else if (type.equals("desc-type")) {
+									v.setDesc(spalte.text());
+									v.setType(recognizeType(spalte.text()));
+								} else if (type.equals("previousRoom"))
 									v.setPreviousRoom(spalte.text());
 								i++;
 							}
@@ -122,7 +125,7 @@ public abstract class UntisCommonParser extends BaseParser {
 							zeile = zeile.nextElementSibling();
 
 						}
-						tag.getKlassen().put(element.text(), kv);
+						tag.getKlassen().put(className, kv);
 					} catch (Throwable e) {
 
 						e.printStackTrace();
@@ -163,13 +166,15 @@ public abstract class UntisCommonParser extends BaseParser {
 						v.setPreviousRoom(spalte.text());
 					else if (type.equals("desc"))
 						v.setDesc(spalte.text());
-					else if (type.equals("teacher"))
+					else if (type.equals("desc-type")) {
+						v.setDesc(spalte.text());
+						v.setType(recognizeType(spalte.text()));
+					} else if (type.equals("teacher"))
 						v.setTeacher(spalte.text());
 					else if (type.equals("previousTeacher"))
 						v.setPreviousTeacher(spalte.text());
 					else if (type.equals("class"))
-						klassen = spalte.text().replace("(", "")
-								.replace(")", "");
+						klassen = getClassName(spalte.text(), data);
 					i++;
 				}
 
@@ -237,6 +242,30 @@ public abstract class UntisCommonParser extends BaseParser {
 		}
 	}
 
+	private String recognizeType(String text) {
+		if (text.contains("f.a."))
+			return "Entfall";
+		else
+			return null;
+	}
+
+	private String getClassName(String text, JSONObject data) {
+		text = text.replace("(", "").replace(")", "");
+		if (data.has("classRegex")) {
+			Pattern pattern = Pattern.compile(data.getString("classRegex"));
+			Matcher matcher = pattern.matcher(text);
+			if (matcher.find())
+				if (matcher.groupCount() > 0)
+					return matcher.group(1);
+				else
+					return matcher.group();
+			else
+				return null;
+		} else {
+			return text;
+		}
+	}
+
 	/**
 	 * Parst eine "Nachrichten zum Tag"-Tabelle aus Untis-Vertretungsplänen
 	 * 
@@ -293,6 +322,8 @@ public abstract class UntisCommonParser extends BaseParser {
 	}
 
 	private boolean isValidClass(String klasse) {
+		if (klasse == null)
+			return false;
 		if (Arrays.asList(EXCLUDED_CLASS_NAMES).contains(klasse)) {
 			return false;
 		} else if (schule.getData().has("exclude_classes")
