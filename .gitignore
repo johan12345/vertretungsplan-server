@@ -29,3 +29,4 @@ src/main/java/com/johan/vertretungsplan/backend/Settings.java
 *.ipr
 *.iws
 out/
+.gradle/
