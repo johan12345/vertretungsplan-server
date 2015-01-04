@@ -66,4 +66,11 @@ $(function() {
 		page++;
 		loadLogs(page, $("#errors-only").prop('checked'));
 	});
+
+	$("#refresh-logs").click(function() {
+		page = 0;
+		clearLogs();
+        loadLogs(page, $("#errors-only").prop('checked'));
+	})
+
 });

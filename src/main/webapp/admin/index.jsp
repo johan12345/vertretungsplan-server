@@ -68,12 +68,14 @@
           
           <h2 id="logs" class="sub-header">Logs</h2>
             <div class="panel panel-default">
-              <div class="panel-heading">Filtern</div>
               <div class="panel-body">
                 <label class="checkbox-inline" for="errors-only">
                   <input type="checkbox" name="errors-only" id="errors-only" value="true" checked>
                   Nur Fehler
                 </label>
+                <button type="button" class="btn btn-default" id="refresh-logs" aria-label="Aktualisieren">
+                  <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                </button>
               </div>
             </div>
           <div class="table-responsive">
