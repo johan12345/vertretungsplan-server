@@ -113,21 +113,21 @@
 				<fieldset>
                 <!-- Text input-->
                 <div class="form-group">
-                  <label class="col-md-4 control-label" for="id">Schul-ID</label>  
-                  <div class="col-md-8">
+                  <label class="col-md-2 control-label" for="id">Schul-ID</label>
+                  <div class="col-md-10">
                     <input type="text" name="id" id="id" class="form-control input-md"/>
                   </div>
                 </div>
                 <!-- Textarea -->
                 <div class="form-group">
-  				  <label class="col-md-4 control-label" for="editor-text">JSON-Daten</label>
-  				  <div class="col-md-8">
+  				  <label class="col-md-2 control-label" for="editor-text">JSON-Daten</label>
+  				  <div class="col-md-10">
                     <div id="editor-text" class="form-control" style="height:500px" name="editor-text"></div>
                   </div>
                 </div>
                 <div class="form-group">
-                	<div class="col-md-4"></div>
-                    <div class="col-md-8">
+                	<div class="col-md-2"></div>
+                    <div class="col-md-10">
                 		<button type="button" class="btn btn-primary ladda-button" data-style="expand-right" id="check">Prüfen</button>
                     </div>
                 </div>
