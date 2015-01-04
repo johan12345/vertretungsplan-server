@@ -232,7 +232,7 @@ public abstract class BaseParser {
 		try {
 			KeyStore ks = KeyStore.getInstance("JKS");
 			is = getClass().getClassLoader().getResourceAsStream(
-					"resources/trustStore.jks");
+					"trustStore.jks");
 			if (is == null)
 				throw new RuntimeException();
 			ks.load(is, "Vertretungsplan".toCharArray());
