@@ -45,7 +45,7 @@ public class DSBLightParser extends UntisCommonParser {
 
 		doc = Jsoup.parse(response);
 
-		if (schule.getData().has("login") && schule.getData().getBoolean("login") == true) {
+		if (schule.getData().has("login") && schule.getData().getBoolean("login")) {
 			List<NameValuePair> params = new ArrayList<NameValuePair>();
 			params.add(new BasicNameValuePair("__VIEWSTATE", doc.select(
 					"#__VIEWSTATE").attr("value")));
@@ -57,8 +57,8 @@ public class DSBLightParser extends UntisCommonParser {
 			params.add(new BasicNameValuePair("ctl02$txtPasswort", getPassword()));
 			params.add(new BasicNameValuePair("ctl02$btnLogin", "weiter"));
 			response = httpPost(iframeUrl, ENCODING, params, referer);
+			doc = Jsoup.parse(response);
 		}
-		doc = Jsoup.parse(response);
 		Pattern regex = Pattern.compile("location\\.href=\"([^\"]*)\"");
 
 		for (Element iframe : doc.select("iframe")) {
