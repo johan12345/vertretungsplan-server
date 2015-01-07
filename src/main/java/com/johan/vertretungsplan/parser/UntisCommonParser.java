@@ -16,13 +16,10 @@
 
 package com.johan.vertretungsplan.parser;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.johan.vertretungsplan.objects.KlassenVertretungsplan;
+import com.johan.vertretungsplan.objects.Schule;
+import com.johan.vertretungsplan.objects.Vertretung;
+import com.johan.vertretungsplan.objects.VertretungsplanTag;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,10 +28,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
-import com.johan.vertretungsplan.objects.KlassenVertretungsplan;
-import com.johan.vertretungsplan.objects.Schule;
-import com.johan.vertretungsplan.objects.Vertretung;
-import com.johan.vertretungsplan.objects.VertretungsplanTag;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Enthält gemeinsam genutzte Funktionen für die Parser für
@@ -178,8 +177,12 @@ public abstract class UntisCommonParser extends BaseParser {
 					i++;
 				}
 
-				if (v.getType() == null)
-					v.setType("Vertretung");
+				if (v.getType() == null) {
+					if (zeile.select("strike").size() > 0)
+						v.setType("Entfall");
+					else
+						v.setType("Vertretung");
+				}
 
 				List<String> affectedClasses;
 
