@@ -27,6 +27,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.json.JSONException;
 
 import javax.net.ssl.SSLContext;
@@ -79,7 +80,7 @@ public abstract class BaseParser {
                     SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
 
             CloseableHttpClient httpclient = HttpClients.custom()
-                    .setSSLSocketFactory(sslsf).build();
+                    .setSSLSocketFactory(sslsf).setRedirectStrategy(new LaxRedirectStrategy()).build();
             this.executor = Executor.newInstance(httpclient).cookieStore(
                     cookieStore);
         } catch (KeyStoreException e) {
