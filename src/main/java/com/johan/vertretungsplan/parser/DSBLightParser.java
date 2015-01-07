@@ -45,6 +45,7 @@ public class DSBLightParser extends UntisCommonParser {
 
 		doc = Jsoup.parse(response);
 
+		StringBuilder debug = new StringBuilder();
 		if (schule.getData().has("login") && schule.getData().getBoolean("login")) {
 			List<NameValuePair> params = new ArrayList<NameValuePair>();
 			params.add(new BasicNameValuePair("__VIEWSTATE", doc.select(
@@ -56,6 +57,11 @@ public class DSBLightParser extends UntisCommonParser {
 			params.add(new BasicNameValuePair("ctl02$txtBenutzername", getUsername()));
 			params.add(new BasicNameValuePair("ctl02$txtPasswort", getPassword()));
 			params.add(new BasicNameValuePair("ctl02$btnLogin", "weiter"));
+			debug.append(response + "\n\n");
+			debug.append(iframeUrl + "\n");
+			for (NameValuePair param : params) {
+				debug.append(param.getName() + "=" + param.getValue() + "\n");
+			}
 			response = httpPost(iframeUrl, ENCODING, params, referer);
 			doc = Jsoup.parse(response);
 		}
@@ -91,7 +97,7 @@ public class DSBLightParser extends UntisCommonParser {
 			}
 		}
 		if (tage.size() == 0)
-			throw new IOException(doc.html());
+			throw new IOException(debug.toString());
 
 		Vertretungsplan v = new Vertretungsplan();
 		v.setTage(new ArrayList<VertretungsplanTag>(tage.values()));
