@@ -35,17 +35,32 @@ public class DSBLightParser extends UntisCommonParser {
 
 		Map<String, String> referer = new HashMap<String, String>();
 		referer.put("Referer", BASE_URL + "/Player.aspx?ID=" + id);
-		if (schule.getData().has("login")) {
-			List<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair("ctl02$txtBenutzername", this.getUsername()));
-			params.add(new BasicNameValuePair("ctl02$txtPasswort", this.getPassword()));
-			params.add(new BasicNameValuePair("ctl02$btnLogin", "weiter"));
-			httpPost(BASE_URL + "/IFrame.aspx?ID=" + id, ENCODING, params, referer, false);
-		}
-		String response = httpGet(BASE_URL + "/IFrame.aspx?ID=" + id, ENCODING,
+
+		String response = httpGet(BASE_URL + "/Player.aspx?ID=" + id, ENCODING,
 				referer);
 		Document doc = Jsoup.parse(response);
+		String iframeUrl = doc.select("iframe").first().attr("src");
+
+		response = httpGet(iframeUrl, ENCODING, referer);
+
+		doc = Jsoup.parse(response);
+
+		if (schule.getData().has("login") && schule.getData().getBoolean("login") == true) {
+			List<NameValuePair> params = new ArrayList<NameValuePair>();
+			params.add(new BasicNameValuePair("__VIEWSTATE", doc.select(
+					"#__VIEWSTATE").attr("value")));
+			params.add(new BasicNameValuePair("__VIEWSTATEGENERATOR", doc.select(
+					"#__VIEWSTATEGENERATOR").attr("value")));
+			params.add(new BasicNameValuePair("__EVENTVALIDATION", doc.select(
+					"#__EVENTVALIDATION").attr("value")));
+			params.add(new BasicNameValuePair("ctl02$txtBenutzername", getUsername()));
+			params.add(new BasicNameValuePair("ctl02$txtPasswort", getPassword()));
+			params.add(new BasicNameValuePair("ctl02$btnLogin", "weiter"));
+			response = httpPost(iframeUrl, ENCODING, params, referer);
+		}
+		doc = Jsoup.parse(response);
 		Pattern regex = Pattern.compile("location\\.href=\"([^\"]*)\"");
+
 		for (Element iframe : doc.select("iframe")) {
 			String response2 = httpGet(iframe.attr("src"), ENCODING, referer);
 			Matcher matcher = regex.matcher(response2);
