@@ -84,14 +84,14 @@ public class DSBLightParser extends UntisCommonParser {
 							tagToMerge.merge(tag);
 							tage.put(tag.getDatum(), tagToMerge);
 						}
-					} else {
-						throw new IOException("Kein Untis-Vertretungsplan?");
 					}
 				}
 			} else {
 				throw new IOException("URL nicht gefunden");
 			}
 		}
+		if (tage.size() == 0)
+			throw new IOException(doc.html());
 
 		Vertretungsplan v = new Vertretungsplan();
 		v.setTage(new ArrayList<VertretungsplanTag>(tage.values()));
