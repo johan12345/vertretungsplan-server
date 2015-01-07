@@ -138,6 +138,11 @@ public abstract class BaseParser {
 
     protected String httpPost(String url, String encoding,
                               List<NameValuePair> formParams, Map<String, String> headers) throws IOException {
+        return httpPost(url, encoding, formParams, headers, true);
+    }
+
+    protected String httpPost(String url, String encoding,
+                              List<NameValuePair> formParams, Map<String, String> headers, boolean returnContent) throws IOException {
         Request request = Request.Post(url).bodyForm(formParams)
                 .connectTimeout(15000).socketTimeout(15000);
         if (headers != null) {
@@ -145,8 +150,13 @@ public abstract class BaseParser {
                 request.addHeader(entry.getKey(), entry.getValue());
             }
         }
-        return new String(executor.execute(request)
-                .returnContent().asBytes(), encoding);
+        if (returnContent) {
+            return new String(executor.execute(request)
+                    .returnContent().asBytes(), encoding);
+        } else {
+            executor.execute(request).discardContent();
+            return null;
+        }
     }
 
     /**

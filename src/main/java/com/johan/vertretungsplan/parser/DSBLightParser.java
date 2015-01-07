@@ -35,17 +35,15 @@ public class DSBLightParser extends UntisCommonParser {
 
 		Map<String, String> referer = new HashMap<String, String>();
 		referer.put("Referer", BASE_URL + "/Player.aspx?ID=" + id);
-		String response;
 		if (schule.getData().has("login")) {
 			List<NameValuePair> params = new ArrayList<NameValuePair>();
 			params.add(new BasicNameValuePair("ctl02$txtBenutzername", this.getUsername()));
 			params.add(new BasicNameValuePair("ctl02$txtPasswort", this.getPassword()));
 			params.add(new BasicNameValuePair("ctl02$btnLogin", "weiter"));
-			response = httpPost(BASE_URL + "/IFrame.aspx?ID=" + id, ENCODING, params, referer);
-		} else {
-			response = httpGet(BASE_URL + "/IFrame.aspx?ID=" + id, ENCODING,
-					referer);
+			httpPost(BASE_URL + "/IFrame.aspx?ID=" + id, ENCODING, params, referer, false);
 		}
+		String response = httpGet(BASE_URL + "/IFrame.aspx?ID=" + id, ENCODING,
+				referer);
 		Document doc = Jsoup.parse(response);
 		Pattern regex = Pattern.compile("location\\.href=\"([^\"]*)\"");
 		for (Element iframe : doc.select("iframe")) {
