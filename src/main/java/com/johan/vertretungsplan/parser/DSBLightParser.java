@@ -1,23 +1,20 @@
 package com.johan.vertretungsplan.parser;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.johan.vertretungsplan.objects.Schule;
+import com.johan.vertretungsplan.objects.Vertretungsplan;
+import com.johan.vertretungsplan.objects.VertretungsplanTag;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import com.johan.vertretungsplan.objects.Schule;
-import com.johan.vertretungsplan.objects.Vertretungsplan;
-import com.johan.vertretungsplan.objects.VertretungsplanTag;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DSBLightParser extends UntisCommonParser {
 
@@ -38,9 +35,17 @@ public class DSBLightParser extends UntisCommonParser {
 
 		Map<String, String> referer = new HashMap<String, String>();
 		referer.put("Referer", BASE_URL + "/Player.aspx?ID=" + id);
-
-		String response = httpGet(BASE_URL + "/IFrame.aspx?ID=" + id, ENCODING,
-				referer);
+		String response;
+		if (schule.getData().has("login")) {
+			List<NameValuePair> params = new ArrayList<NameValuePair>();
+			params.add(new BasicNameValuePair("ctl02$txtBenutzername", this.getUsername()));
+			params.add(new BasicNameValuePair("ctl02$txtPasswort", this.getPassword()));
+			params.add(new BasicNameValuePair("ctl02$btnLogin", "weiter"));
+			response = httpPost(BASE_URL + "/IFrame.aspx?ID=" + id, ENCODING, params, referer);
+		} else {
+			response = httpGet(BASE_URL + "/IFrame.aspx?ID=" + id, ENCODING,
+					referer);
+		}
 		Document doc = Jsoup.parse(response);
 		Pattern regex = Pattern.compile("location\\.href=\"([^\"]*)\"");
 		for (Element iframe : doc.select("iframe")) {
