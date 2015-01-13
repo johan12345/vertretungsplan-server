@@ -178,7 +178,7 @@ public abstract class UntisCommonParser extends BaseParser {
 				}
 
 				if (v.getType() == null) {
-					if (zeile.select("strike").size() > 0 || zeile.select("span[style*FF0000]").size() > 0)
+					if (zeile.select("strike").size() > 0 || zeile.select("span[style*=FF0000]").size() > 0)
 						v.setType("Entfall");
 					else
 						v.setType("Vertretung");
