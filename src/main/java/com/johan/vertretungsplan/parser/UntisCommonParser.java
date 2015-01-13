@@ -83,7 +83,7 @@ public abstract class UntisCommonParser extends BaseParser {
 
 							int i = 0;
 							for (Element spalte : zeile.select("td")) {
-								if (!hasData(zeile.text())) {
+								if (!hasData(spalte.text())) {
 									i++;
 									continue;
 								}
@@ -149,7 +149,7 @@ public abstract class UntisCommonParser extends BaseParser {
 				String klassen = "";
 				int i = 0;
 				for (Element spalte : zeile.select("td")) {
-					if (!hasData(zeile.text())) {
+					if (!hasData(spalte.text())) {
 						i++;
 						continue;
 					}
