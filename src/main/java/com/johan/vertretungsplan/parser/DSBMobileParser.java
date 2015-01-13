@@ -1,28 +1,17 @@
 package com.johan.vertretungsplan.parser;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.johan.vertretungsplan.objects.*;
+import com.paour.comparator.NaturalOrderComparator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import com.johan.vertretungsplan.objects.AdditionalInfo;
-import com.johan.vertretungsplan.objects.KlassenVertretungsplan;
-import com.johan.vertretungsplan.objects.Schule;
-import com.johan.vertretungsplan.objects.Vertretungsplan;
-import com.johan.vertretungsplan.objects.VertretungsplanTag;
-import com.paour.comparator.NaturalOrderComparator;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.*;
 
 public class DSBMobileParser extends UntisCommonParser {
 
@@ -56,13 +45,30 @@ public class DSBMobileParser extends UntisCommonParser {
 			String html = httpGet(url, schule.getData().getString("encoding"));
 			Document doc = Jsoup.parse(html);
 			if (doc.title().toLowerCase().contains("untis") || doc.html().toLowerCase().contains("untis")) {
-				VertretungsplanTag tag = parseMonitorVertretungsplanTag(doc, schule.getData());
-				if(!tage.containsKey(tag.getDatum())) {
-					tage.put(tag.getDatum(), tag);
+				if (doc.select(".mon_head").size() > 1) {
+					for (int j = 0; j < doc.select(".mon_head").size(); j++) {
+						Document doc2 = Document.createShell(doc.baseUri());
+						doc2.body().appendChild(doc.select(".mon_head").get(j).clone());
+						doc2.body().appendChild(doc.select(".mon_title").get(j).clone());
+						doc2.body().appendChild(doc.select("table:has(tr.list)").get(j).clone());
+						VertretungsplanTag tag = parseMonitorVertretungsplanTag(doc2, schule.getData());
+						if (!tage.containsKey(tag.getDatum())) {
+							tage.put(tag.getDatum(), tag);
+						} else {
+							VertretungsplanTag tagToMerge = tage.get(tag.getDatum());
+							tagToMerge.merge(tag);
+							tage.put(tag.getDatum(), tagToMerge);
+						}
+					}
 				} else {
-					VertretungsplanTag tagToMerge = tage.get(tag.getDatum());
-					tagToMerge.merge(tag);
-					tage.put(tag.getDatum(), tagToMerge);
+					VertretungsplanTag tag = parseMonitorVertretungsplanTag(doc, schule.getData());
+					if (!tage.containsKey(tag.getDatum())) {
+						tage.put(tag.getDatum(), tag);
+					} else {
+						VertretungsplanTag tagToMerge = tage.get(tag.getDatum());
+						tagToMerge.merge(tag);
+						tage.put(tag.getDatum(), tagToMerge);
+					}
 				}
 			} else {
 				throw new IOException("Kein Untis-Vertretungsplan?");
