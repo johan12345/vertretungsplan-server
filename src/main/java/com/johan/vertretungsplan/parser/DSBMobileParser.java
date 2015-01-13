@@ -45,7 +45,7 @@ public class DSBMobileParser extends UntisCommonParser {
 			String html = httpGet(url, schule.getData().getString("encoding"));
 			Document doc = Jsoup.parse(html);
 			if (doc.title().toLowerCase().contains("untis") || doc.html().toLowerCase().contains("untis")) {
-				if (doc.select(".mon_head").size() > 0) {
+				if (doc.select(".mon_head").size() > 1) {
 					for (int j = 0; j < doc.select(".mon_head").size(); j++) {
 						Document doc2 = Document.createShell(doc.baseUri());
 						doc2.body().appendChild(doc.select(".mon_head").get(j));
