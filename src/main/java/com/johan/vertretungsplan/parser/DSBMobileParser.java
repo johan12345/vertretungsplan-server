@@ -48,9 +48,9 @@ public class DSBMobileParser extends UntisCommonParser {
 				if (doc.select(".mon_head").size() > 1) {
 					for (int j = 0; j < doc.select(".mon_head").size(); j++) {
 						Document doc2 = Document.createShell(doc.baseUri());
-						doc2.body().appendChild(doc.select(".mon_head").get(j));
-						doc2.body().appendChild(doc.select(".mon_title").get(j));
-						doc2.body().appendChild(doc.select("table:has(tr.list)").get(j));
+						doc2.body().appendChild(doc.select(".mon_head").get(j).clone());
+						doc2.body().appendChild(doc.select(".mon_title").get(j).clone());
+						doc2.body().appendChild(doc.select("table:has(tr.list)").get(j).clone());
 						VertretungsplanTag tag = parseMonitorVertretungsplanTag(doc2, schule.getData());
 						if (!tage.containsKey(tag.getDatum())) {
 							tage.put(tag.getDatum(), tag);
