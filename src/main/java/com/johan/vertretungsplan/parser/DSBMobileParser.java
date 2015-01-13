@@ -45,12 +45,23 @@ public class DSBMobileParser extends UntisCommonParser {
 			String html = httpGet(url, schule.getData().getString("encoding"));
 			Document doc = Jsoup.parse(html);
 			if (doc.title().toLowerCase().contains("untis") || doc.html().toLowerCase().contains("untis")) {
-				for (int j = 0; j < doc.select(".mon_head").size(); j++) {
-					Document doc2 = new Document(doc.baseUri());
-					doc2.appendChild(doc.select(".mon_head").get(j));
-					doc2.appendChild(doc.select(".mon_title").get(j));
-					doc2.appendChild(doc.select("table:has(tr.list)").get(j));
-					VertretungsplanTag tag = parseMonitorVertretungsplanTag(doc2, schule.getData());
+				if (doc.select(".mon_head").size() > 0) {
+					for (int j = 0; j < doc.select(".mon_head").size(); j++) {
+						Document doc2 = Document.createShell(doc.baseUri());
+						doc2.body().appendChild(doc.select(".mon_head").get(j));
+						doc2.body().appendChild(doc.select(".mon_title").get(j));
+						doc2.body().appendChild(doc.select("table:has(tr.list)").get(j));
+						VertretungsplanTag tag = parseMonitorVertretungsplanTag(doc2, schule.getData());
+						if (!tage.containsKey(tag.getDatum())) {
+							tage.put(tag.getDatum(), tag);
+						} else {
+							VertretungsplanTag tagToMerge = tage.get(tag.getDatum());
+							tagToMerge.merge(tag);
+							tage.put(tag.getDatum(), tagToMerge);
+						}
+					}
+				} else {
+					VertretungsplanTag tag = parseMonitorVertretungsplanTag(doc, schule.getData());
 					if (!tage.containsKey(tag.getDatum())) {
 						tage.put(tag.getDatum(), tag);
 					} else {
