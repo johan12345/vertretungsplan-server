@@ -254,7 +254,7 @@ public abstract class UntisCommonParser extends BaseParser {
 	}
 
 	private boolean hasData(String text) {
-		return !text.equals("") && !text.equals("---");
+		return !text.trim().equals("") && !text.trim().equals("---");
 	}
 
 	private String recognizeType(String text) {
