@@ -83,6 +83,10 @@ public abstract class UntisCommonParser extends BaseParser {
 
 							int i = 0;
 							for (Element spalte : zeile.select("td")) {
+								if (!hasData(zeile.text())) {
+									i++;
+									continue;
+								}
 								String type = data.getJSONArray("columns")
 										.getString(i);
 								if (type.equals("lesson"))
@@ -145,6 +149,10 @@ public abstract class UntisCommonParser extends BaseParser {
 				String klassen = "";
 				int i = 0;
 				for (Element spalte : zeile.select("td")) {
+					if (!hasData(zeile.text())) {
+						i++;
+						continue;
+					}
 					String type = data.getJSONArray("columns").getString(i);
 					if (type.equals("lesson"))
 						v.setLesson(spalte.text());
@@ -178,7 +186,7 @@ public abstract class UntisCommonParser extends BaseParser {
 				}
 
 				if (v.getType() == null) {
-					if (zeile.select("strike").size() > 0 || zeile.select("span[style*=FF0000]").size() > 0)
+					if (zeile.select("strike").size() > 0 || (v.getSubject() == null && v.getRoom() == null && v.getPreviousSubject() != null))
 						v.setType("Entfall");
 					else
 						v.setType("Vertretung");
@@ -243,6 +251,10 @@ public abstract class UntisCommonParser extends BaseParser {
 				}
 			}
 		}
+	}
+
+	private boolean hasData(String text) {
+		return !text.equals("") && !text.equals("---");
 	}
 
 	private String recognizeType(String text) {
