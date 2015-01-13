@@ -186,7 +186,7 @@ public abstract class UntisCommonParser extends BaseParser {
 				}
 
 				if (v.getType() == null) {
-					if (zeile.select("strike").size() > 0 || (v.getSubject() == null && v.getRoom() == null && v.getPreviousSubject() != null))
+					if (zeile.select("strike").size() > 0 || (v.getSubject() == null && v.getRoom() == null && v.getTeacher() == null && v.getPreviousSubject() != null))
 						v.setType("Entfall");
 					else
 						v.setType("Vertretung");
@@ -331,7 +331,7 @@ public abstract class UntisCommonParser extends BaseParser {
 			parseNachrichten(doc.select("table.info").first(), data, tag);
 
 		// VERTRETUNGSPLAN
-		parseVertretungsplanTable(doc, data, tag);
+		parseVertretungsplanTable(doc.select("table:has(tr.list)").first(), data, tag);
 
 		return tag;
 	}
