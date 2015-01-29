@@ -1,33 +1,28 @@
 package com.johan.vertretungsplan.backend;
 
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.concurrent.Callable;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.google.android.gcm.server.Constants;
 import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
 import com.google.gson.Gson;
 import com.johan.vertretungsplan.additionalinfo.BaseAdditionalInfoParser;
+import com.johan.vertretungsplan.exception.NoCredentialsAvailableException;
 import com.johan.vertretungsplan.objects.AdditionalInfo;
 import com.johan.vertretungsplan.objects.Schule;
 import com.johan.vertretungsplan.objects.Vertretungsplan;
 import com.johan.vertretungsplan.objects.VertretungsplanTag;
 import com.johan.vertretungsplan.parser.BaseParser;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
+import com.mongodb.*;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 
 public class ParseThread implements Callable<ParseThreadResult> {
 	
@@ -71,17 +66,13 @@ public class ParseThread implements Callable<ParseThreadResult> {
 			} else {
 				return new ParseThreadResult("test");
 			}
-		} catch (JSONException e) {
-			return new ParseThreadResult(e);
-		} catch (NumberFormatException e) {
-			return new ParseThreadResult(e);
-		} catch (IOException e) {
-			return new ParseThreadResult(e);
-		}
-	}
-	
-	public ParseResult parse() throws IOException {
-		JSONObject json = new JSONObject(schoolData);
+        } catch (JSONException | NumberFormatException | IOException | NoCredentialsAvailableException e) {
+            return new ParseThreadResult(e);
+        }
+    }
+
+    public ParseResult parse() throws IOException, NoCredentialsAvailableException {
+        JSONObject json = new JSONObject(schoolData);
 		Schule schule = Schule.fromJSON(schoolId, json);
 		DBCollection cookiesColl = db.getCollection("cookies");
 		
@@ -94,9 +85,13 @@ public class ParseThread implements Callable<ParseThreadResult> {
 			BasicDBObject query2 = new BasicDBObject("schoolId", schoolId);
 			query2.append("login", new BasicDBObject("$ne", ""));
 			query2.append("password", new BasicDBObject("$ne", ""));
-			DBCursor regs = regColl.find(query2);
+            query2.append("password_invalid", new BasicDBObject("$ne", "true"));
+            DBCursor regs = regColl.find(query2);
 			int n = regs.count();
-			int rand = (int) Math.floor(Math.random() * (n-1));
+            if (n == 0) {
+                throw new NoCredentialsAvailableException();
+            }
+            int rand = (int) Math.floor(Math.random() * (n-1));
 			regs.skip(rand);
 			reg = regs.next();
 			regs.close();
