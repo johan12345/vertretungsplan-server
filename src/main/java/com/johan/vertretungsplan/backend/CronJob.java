@@ -1,5 +1,10 @@
 package com.johan.vertretungsplan.backend;
 
+import com.johan.vertretungsplan.exception.NoCredentialsAvailableException;
+import com.johan.vertretungsplan.objects.Schule;
+import com.mongodb.*;
+import org.bson.types.BasicBSONList;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.AbstractMap;
@@ -7,20 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
-import org.bson.types.BasicBSONList;
-
-import com.johan.vertretungsplan.objects.Schule;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
+import java.util.concurrent.*;
 
 public class CronJob implements Runnable {
 
@@ -58,7 +50,9 @@ public class CronJob implements Runnable {
 					ParseThreadResult result = entry.getValue().get();
 					Exception ex = result.ex;
 					if (ex != null) {
-						// resp.getWriter().println();
+                        if (ex instanceof NoCredentialsAvailableException)
+                            continue;
+                        // resp.getWriter().println();
 						// ex.printStackTrace(resp.getWriter());
 						// resp.getWriter().println("---------------------");
 
