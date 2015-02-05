@@ -116,7 +116,10 @@ public class SVPlanParser extends BaseParser {
                     Element h2 = doc.select("h2:contains(Mitteilungen)").first();
                     Element sibling = h2.nextElementSibling();
                     while (sibling != null && sibling.tagName().equals("p")) {
-                        nachrichten.addAll(Arrays.asList(sibling.text().split("\n\n")));
+                        for (String nachricht : sibling.text().split("\n\n")) {
+                            if (hasData(nachricht))
+                                nachrichten.add(nachricht);
+                        }
                         sibling = sibling.nextElementSibling();
                     }
                 }
