@@ -173,6 +173,8 @@ public abstract class BaseParser {
                 parser = new DSBMobileParser(schule);
             } else if (schule.getApi().equals("dsblight")) {
                 parser = new DSBLightParser(schule);
+            } else if (schule.getApi().equals("svplan")) {
+                parser = new SVPlanParser(schule);
             }
 
             // else if ... (andere Parser)
