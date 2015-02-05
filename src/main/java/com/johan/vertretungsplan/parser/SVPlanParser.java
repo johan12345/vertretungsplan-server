@@ -63,6 +63,7 @@ public class SVPlanParser extends BaseParser {
                     tag.setStand(doc.select("svp-uploaddatum").text().replace("Aktualisierung: ", ""));
 
                 Elements rows = doc.select(".svp-tabelle tr");
+                String lastLesson = "";
                 for (Element row : rows) {
                     if (row.hasClass("svp-header"))
                         continue;
@@ -75,9 +76,10 @@ public class SVPlanParser extends BaseParser {
                             continue;
                         }
                         String type = column.className();
-                        if (type.startsWith("svp-stunde"))
+                        if (type.startsWith("svp-stunde")) {
                             vertretung.setLesson(column.text());
-                        else if (type.startsWith("svp-klasse"))
+                            lastLesson = column.text();
+                        } else if (type.startsWith("svp-klasse"))
                             affectedClasses = Arrays.asList(column.text().split(", "));
                         else if (type.startsWith("svp-esfehlt"))
                             vertretung.setPreviousTeacher(column.text());
@@ -91,6 +93,9 @@ public class SVPlanParser extends BaseParser {
                         }
                         else if (type.startsWith("svp-raum"))
                             vertretung.setRoom(column.text());
+
+                        if (vertretung.getLesson() == null)
+                            vertretung.setLesson(lastLesson);
                     }
 
                     if (vertretung.getType() == null) {
