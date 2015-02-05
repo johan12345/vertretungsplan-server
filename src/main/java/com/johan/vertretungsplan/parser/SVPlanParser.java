@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
@@ -116,7 +117,7 @@ public class SVPlanParser extends BaseParser {
                     Element h2 = doc.select("h2:contains(Mitteilungen)").first();
                     Element sibling = h2.nextElementSibling();
                     while (sibling != null && sibling.tagName().equals("p")) {
-                        for (String nachricht : sibling.text().split("\n\n")) {
+                        for (String nachricht : TextNode.createFromEncoded(sibling.html(), null).getWholeText().split("\n\n")) {
                             if (hasData(nachricht))
                                 nachrichten.add(nachricht);
                         }
