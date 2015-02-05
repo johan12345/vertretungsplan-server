@@ -257,13 +257,6 @@ public abstract class UntisCommonParser extends BaseParser {
 		return !text.trim().equals("") && !text.trim().equals("---");
 	}
 
-	private String recognizeType(String text) {
-		if (text.contains("f.a."))
-			return "Entfall";
-		else
-			return null;
-	}
-
 	private String getClassName(String text, JSONObject data) {
 		text = text.replace("(", "").replace(")", "");
 		if (data.has("classRegex")) {

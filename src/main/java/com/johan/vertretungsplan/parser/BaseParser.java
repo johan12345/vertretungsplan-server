@@ -173,6 +173,8 @@ public abstract class BaseParser {
                 parser = new DSBMobileParser(schule);
             } else if (schule.getApi().equals("dsblight")) {
                 parser = new DSBLightParser(schule);
+            } else if (schule.getApi().equals("svplan")) {
+                parser = new SVPlanParser(schule);
             }
 
             // else if ... (andere Parser)
@@ -250,5 +252,12 @@ public abstract class BaseParser {
                     e.printStackTrace();
                 }
         }
+    }
+
+    protected String recognizeType(String text) {
+        if (text.contains("f.a.") || text.contains("fällt aus"))
+            return "Entfall";
+        else
+            return null;
     }
 }
