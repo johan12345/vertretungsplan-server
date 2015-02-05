@@ -84,10 +84,16 @@ public class SVPlanParser extends BaseParser {
                             vertretung.setTeacher(column.text());
                         else if (type.startsWith("svp-fach"))
                             vertretung.setSubject(column.text());
-                        else if (type.startsWith("svp-bemerkung"))
+                        else if (type.startsWith("svp-bemerkung")) {
                             vertretung.setDesc(column.text());
+                            vertretung.setType(recognizeType(column.text()));
+                        }
                         else if (type.startsWith("svp-raum"))
                             vertretung.setRoom(column.text());
+                    }
+
+                    if (vertretung.getType() == null) {
+                        vertretung.setType("Vertretung");
                     }
 
                     for (String klasse : affectedClasses) {

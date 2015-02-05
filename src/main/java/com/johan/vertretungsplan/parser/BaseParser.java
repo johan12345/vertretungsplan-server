@@ -253,4 +253,11 @@ public abstract class BaseParser {
                 }
         }
     }
+
+    protected String recognizeType(String text) {
+        if (text.contains("f.a.") || text.contains("fällt aus"))
+            return "Entfall";
+        else
+            return null;
+    }
 }
