@@ -57,10 +57,10 @@ public class SVPlanParser extends BaseParser {
         for (Document doc : docs) {
             if (doc.select(".svp-tabelle").size() > 0) {
                 VertretungsplanTag tag = new VertretungsplanTag();
-                String date = doc.select("svp-plandatum-heute, svp-plandatum-morgen").text();
+                String date = doc.select(".svp-plandatum-heute, .svp-plandatum-morgen").text();
                 tag.setDatum(date);
-                if (doc.select("svp-uploaddatum").size() > 0)
-                    tag.setStand(doc.select("svp-uploaddatum").text().replace("Aktualisierung: ", ""));
+                if (doc.select(".svp-uploaddatum").size() > 0)
+                    tag.setStand(doc.select(".svp-uploaddatum").text().replace("Aktualisierung: ", ""));
 
                 Elements rows = doc.select(".svp-tabelle tr");
                 String lastLesson = "";
