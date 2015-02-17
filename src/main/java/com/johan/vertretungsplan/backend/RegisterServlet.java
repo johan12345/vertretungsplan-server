@@ -5,10 +5,8 @@ import java.io.IOException;
 
 import javax.servlet.http.*;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.MongoClient;
+import com.mongodb.*;
+
 @SuppressWarnings("serial")
 public class RegisterServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {	
@@ -23,7 +21,8 @@ public class RegisterServlet extends HttpServlet {
 		MongoClient client = DBManager.getInstance();
 		DB db = client.getDB("vertretungsplan");
 		
-		DBCollection coll = db.getCollection("registrations");		
+		DBCollection coll = db.getCollection("registrations");
+
 		BasicDBObject sub = new BasicDBObject("_id", subId)			
 			.append("deviceInfo", deviceInfo)
 			.append("type", "gcm")
@@ -34,6 +33,18 @@ public class RegisterServlet extends HttpServlet {
 			sub.append("login", login);
 		if (password != null)
 			sub.append("password", password);
+
+		DBObject registration = coll.findOne(new BasicDBObject("_id", subId));
+		if (registration == null || !registration.get("schoolId").equals(schoolId) ||
+				(registration.get("login") != null && !registration.get("login").equals(login))||
+				(registration.get("password") != null && !registration.get("password").equals(password))) {
+			try {
+				CheckLoginServlet.checkLogin(schoolId, login, password);
+			} catch (Exception e) {
+				sub.append("password_invalid", true);
+			}
+		}
+
 		coll.save(sub);
 	}
 }
