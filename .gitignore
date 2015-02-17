@@ -30,3 +30,4 @@ src/main/java/com/johan/vertretungsplan/backend/Settings.java
 *.iws
 out/
 .gradle/
+/bin/

@@ -29,24 +29,17 @@ public class CheckLoginServlet extends HttpServlet {
 		String login = req.getParameter("login");
 		String password = req.getParameter("password");
 		String schoolId = req.getParameter("schoolId");
-		Schule school = getSchoolById(schoolId);
 		try {
-			BaseParser parser = BaseParser.getInstance(school);
-			parser.setUsername(login);
-			parser.setPassword(password);
-			Vertretungsplan v = parser.getVertretungsplan();
-			if (v.getTage().size() == 0)
-				throw new Exception("kein Vertretungsplanabruf möglich");
+			checkLogin(schoolId, login, password);
 			resp.setStatus(HttpServletResponse.SC_ACCEPTED);
 		} catch (Exception e) {
 			resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			e.printStackTrace(resp.getWriter());
 			resp.getWriter().close();
 		}
-
 	}
 
-	public Schule getSchoolById(String id) {
+	public static Schule getSchoolById(String id) {
 		MongoClient client = DBManager.getInstance();
 		DB db = client.getDB("vertretungsplan");
 
@@ -56,5 +49,15 @@ public class CheckLoginServlet extends HttpServlet {
 		String json = (String) school.get("json");
 		Schule schule = Schule.fromJSON(id, new JSONObject(json));
 		return schule;
+	}
+
+	public static void checkLogin(String schoolId, String login, String password) throws Exception {
+		Schule school = getSchoolById(schoolId);
+		BaseParser parser = BaseParser.getInstance(school);
+		parser.setUsername(login);
+		parser.setPassword(password);
+		Vertretungsplan v = parser.getVertretungsplan();
+		if (v.getTage().size() == 0)
+			throw new Exception("kein Vertretungsplanabruf möglich");
 	}
 }
