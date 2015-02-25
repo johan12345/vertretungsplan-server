@@ -254,25 +254,8 @@ public abstract class UntisCommonParser extends BaseParser {
 	}
 
 	private boolean hasData(String text) {
-		return !text.trim().equals("") && !text.trim().equals("---");
-	}
-
-	private String getClassName(String text, JSONObject data) {
-		text = text.replace("(", "").replace(")", "");
-		if (data.has("classRegex")) {
-			Pattern pattern = Pattern.compile(data.getString("classRegex"));
-			Matcher matcher = pattern.matcher(text);
-			if (matcher.find())
-				if (matcher.groupCount() > 0)
-					return matcher.group(1);
-				else
-					return matcher.group();
-			else
-				return null;
-		} else {
-			return text;
-		}
-	}
+        return !text.trim().equals("") && !text.trim().equals("---");
+    }
 
 	/**
 	 * Parst eine "Nachrichten zum Tag"-Tabelle aus Untis-Vertretungsplänen
@@ -340,13 +323,5 @@ public abstract class UntisCommonParser extends BaseParser {
 			return false;
 		}
 		return true;
-	}
-
-	private boolean contains(JSONArray array, String string) {
-		for (int i = 0; i < array.length(); i++) {
-			if (array.getString(i).equals(string))
-				return true;
-		}
-		return false;
 	}
 }

@@ -60,6 +60,11 @@ public class LoginHandler {
 			}			
 		} else if (type.equals("basic")) {
 			executor.auth(login, password);
+            if (schule.getData().getJSONObject("login").has("url")) {
+                String url = schule.getData().getJSONObject("login").getString("url");
+                if (executor.execute(Request.Get(url)).returnResponse().getStatusLine().getStatusCode() != 200)
+                    throw new IOException("wrong login/password");
+            }
 		} else if (type.equals("fixed")) {
 			String loginFixed = schule.getData().getJSONObject("login").getString("login");
 			String passwordFixed = schule.getData().getJSONObject("login").getString("password");

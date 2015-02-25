@@ -28,7 +28,9 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -44,6 +46,8 @@ import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Ein Parser für einen Vertretungsplan. Er erhält Informationen aus der
@@ -175,6 +179,8 @@ public abstract class BaseParser {
                 parser = new DSBLightParser(schule);
             } else if (schule.getApi().equals("svplan")) {
                 parser = new SVPlanParser(schule);
+            } else if (schule.getApi().equals("csv")) {
+                parser = new CSVParser(schule);
             }
 
             // else if ... (andere Parser)
@@ -259,5 +265,30 @@ public abstract class BaseParser {
             return "Entfall";
         else
             return null;
+    }
+
+    protected String getClassName(String text, JSONObject data) {
+        text = text.replace("(", "").replace(")", "");
+        if (data.has("classRegex")) {
+            Pattern pattern = Pattern.compile(data.getString("classRegex"));
+            Matcher matcher = pattern.matcher(text);
+            if (matcher.find())
+                if (matcher.groupCount() > 0)
+                    return matcher.group(1);
+                else
+                    return matcher.group();
+            else
+                return null;
+        } else {
+            return text;
+        }
+    }
+
+    protected boolean contains(JSONArray array, String string) {
+        for (int i = 0; i < array.length(); i++) {
+            if (array.getString(i).equals(string))
+                return true;
+        }
+        return false;
     }
 }
