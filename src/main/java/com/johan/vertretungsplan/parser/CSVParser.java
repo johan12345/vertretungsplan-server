@@ -42,9 +42,10 @@ public class CSVParser extends BaseParser {
             String klasse = null;
             String day = null;
             String stand = "";
+            int j = 0;
             for (String column:columns) {
                 String type = data.getJSONArray("columns")
-                        .getString(i);
+                        .getString(j);
                 if (type.equals("lesson"))
                     v.setLesson(column);
                 else if (type.equals("subject"))
@@ -77,6 +78,7 @@ public class CSVParser extends BaseParser {
                     day = column;
                 else if (type.equals("stand"))
                     stand = column;
+                j++;
             }
             if (v.getType() == null)
                 v.setType("Vertretung");
@@ -94,6 +96,7 @@ public class CSVParser extends BaseParser {
                     kv = new KlassenVertretungsplan(klasse);
                 kv.add(v);
                 tag.getKlassen().put(klasse, kv);
+                days.put(day, tag);
             }
         }
         vertretungsplan.setTage(new ArrayList<>(days.values()));
