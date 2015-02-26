@@ -26,6 +26,7 @@ src/main/java/com/johan/vertretungsplan/backend/Settings.java
 .idea/gradle.xml
 .idea/libraries
 .idea/mongoSettings.xml
+.idea/misc.xml
 *.ipr
 *.iws
 out/
