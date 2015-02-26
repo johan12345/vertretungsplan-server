@@ -188,28 +188,29 @@ public class ParseThread implements Callable<ParseThreadResult> {
 			
 			if(tag.getKlassen().get(klasse) != null
 					&& tag.getKlassen().get(klasse).getVertretung().size() > 0) {
-				//Auf dem neuen Plan gibt es Vertretungen, die die gew�hlte Klasse betreffen
+				//Auf dem neuen Plan gibt es Vertretungen, die die gewählte Klasse betreffen
 				if(oldTag == null) {
-					//dieser Tag wurde neu hinzugef�gt -> Vertretungen waren vorher nicht bekannt
+					//dieser Tag wurde neu hinzugefügt -> Vertretungen waren vorher nicht bekannt
 					return ChangeType.NOTIFICATION;
 				} else {
 					//dieser Tag war vorher schon auf dem Vertretungsplan
-					//Stand pr�fen					
-					if(!oldTag.getStand().equals(tag.getStand())) {	
-						//Stand hat sich ver�ndert
+					//Stand prüfen
+					if((oldTag.getStand() == null && tag.getStand() == null) ||
+                            !oldTag.getStand().equals(tag.getStand())) {
+						//Stand hat sich verändert oder ist nicht verfügbar
 						if(oldTag.getKlassen().get(klasse) != null
 								&& oldTag.getKlassen().get(klasse).getVertretung().size() > 0) {
-							//auch vorher waren schon Vertretungen f�r die Klasse bekannt
+							//auch vorher waren schon Vertretungen für die Klasse bekannt
 							//-> vergleiche alte mit neuen Vertretungen
 							if(!oldTag.getKlassen().get(klasse).getVertretung().equals(
 									tag.getKlassen().get(klasse).getVertretung())) {
 								//Die Vertretungen sind nicht gleich
 								return ChangeType.NOTIFICATION;
 							} else {
-								//keine Ver�nderung
+								//keine Veränderung
 							}
 						} else {
-							//vorher waren keine Vertretungen f�r die gew�hlte Klasse bekannt -> es wurde etwas ver�ndert
+							//vorher waren keine Vertretungen für die gewählte Klasse bekannt -> es wurde etwas verändert
 							return ChangeType.NOTIFICATION;
 						}
 					}
