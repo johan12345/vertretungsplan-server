@@ -32,8 +32,8 @@ public class GetVertretungsplanServlet extends HttpServlet {
 				DBCollection regColl = db.getCollection("registrations");
 				BasicDBObject query = new BasicDBObject("_id", regId);
 				DBObject reg = regColl.findOne(query);
-				if (reg.containsField("password_invalid") && (Boolean) reg
-								.get("password_invalid") == true) {
+				if (reg == null || (reg.containsField("password_invalid") && (Boolean) reg
+								.get("password_invalid") == true)) {
 					unauthorized(resp);
 					return;
 				}
