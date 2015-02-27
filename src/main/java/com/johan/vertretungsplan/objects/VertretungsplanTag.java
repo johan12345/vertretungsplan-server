@@ -87,15 +87,22 @@ public class VertretungsplanTag implements Serializable {
 	}
 	
 	public void merge(VertretungsplanTag tag) {
-		for(Entry<String, KlassenVertretungsplan> entry:tag.getKlassen().entrySet()) {
-			if(!klassen.containsKey(entry.getKey())) {
-				klassen.put(entry.getKey(), entry.getValue());
-			} else {
-				for(Vertretung v:entry.getValue().getVertretung()) {
-					klassen.get(entry.getKey()).add(v);
-				}
-			}
-		}
+        if (tag.getKlassen() != null) {
+            for (Entry<String, KlassenVertretungsplan> entry : tag.getKlassen().entrySet()) {
+                if (!klassen.containsKey(entry.getKey())) {
+                    klassen.put(entry.getKey(), entry.getValue());
+                } else {
+                    for (Vertretung v : entry.getValue().getVertretung()) {
+                        klassen.get(entry.getKey()).add(v);
+                    }
+                }
+            }
+        }
+        if (tag.getNachrichten() != null) {
+            for (String nachricht:tag.getNachrichten()) {
+                getNachrichten().add(nachricht);
+            }
+        }
 	}
 
 }

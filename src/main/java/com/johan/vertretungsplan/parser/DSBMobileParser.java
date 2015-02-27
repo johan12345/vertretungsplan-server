@@ -7,11 +7,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DSBMobileParser extends UntisCommonParser {
 
@@ -49,8 +52,17 @@ public class DSBMobileParser extends UntisCommonParser {
 					for (int j = 0; j < doc.select(".mon_head").size(); j++) {
 						Document doc2 = Document.createShell(doc.baseUri());
 						doc2.body().appendChild(doc.select(".mon_head").get(j).clone());
-						doc2.body().appendChild(doc.select(".mon_title").get(j).clone());
-						doc2.body().appendChild(doc.select("table:has(tr.list)").get(j).clone());
+                        Element next = doc.select(".mon_head").get(j).nextElementSibling();
+                        if (next != null && next.tagName().equals("center")) {
+                            doc2.body().appendChild(next.select(".mon_title").first().clone());
+                            if (next.select("table:has(tr.list)").size() > 0)
+                                doc2.body().appendChild(next.select("table:has(tr.list)").first());
+                            if (next.select("table.info").size() > 0)
+                                doc2.body().appendChild(next.select("table.info").first());
+                        } else {
+                            doc2.body().appendChild(doc.select(".mon_title").get(j).clone());
+                            doc2.body().appendChild(doc.select("table:has(tr.list)").get(j).clone());
+                        }
 						VertretungsplanTag tag = parseMonitorVertretungsplanTag(doc2, schule.getData());
 						if (!tage.containsKey(tag.getDatum())) {
 							tage.put(tag.getDatum(), tag);
@@ -99,7 +111,20 @@ public class DSBMobileParser extends UntisCommonParser {
 
 			@Override
 			public int compare(VertretungsplanTag o1, VertretungsplanTag o2) {
-				return o1.getDatum().compareTo(o2.getDatum());
+                // Check if dates are parseable, else compare strings
+                Pattern pattern = Pattern.compile("(\\d\\d?)\\.(\\d\\d?)\\.(\\d\\d\\d?\\d?)");
+                Matcher matcher1 = pattern.matcher(o1.getDatum());
+                Matcher matcher2 = pattern.matcher(o2.getDatum());
+                if (matcher1.find() && matcher2.find()) {
+                    if (!matcher1.group(3).equals(matcher2.group(3)))
+                        return matcher1.group(3).compareTo(matcher2.group(3));
+                    else if (!matcher1.group(2).equals(matcher2.group(2)))
+                        return matcher1.group(2).compareTo(matcher2.group(2));
+                    else
+                        return matcher1.group(1).compareTo(matcher2.group(1));
+                } else {
+                    return o1.getDatum().compareTo(o2.getDatum());
+                }
 			}
 			
 		});

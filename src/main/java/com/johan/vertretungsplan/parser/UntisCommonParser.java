@@ -307,7 +307,8 @@ public abstract class UntisCommonParser extends BaseParser {
 			parseNachrichten(doc.select("table.info").first(), data, tag);
 
 		// VERTRETUNGSPLAN
-		parseVertretungsplanTable(doc.select("table:has(tr.list)").first(), data, tag);
+        if (doc.select("table:has(tr.list)").size() > 0)
+		    parseVertretungsplanTable(doc.select("table:has(tr.list)").first(), data, tag);
 
 		return tag;
 	}
