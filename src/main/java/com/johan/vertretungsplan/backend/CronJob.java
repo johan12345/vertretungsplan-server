@@ -3,6 +3,7 @@ package com.johan.vertretungsplan.backend;
 import com.johan.vertretungsplan.exception.NoCredentialsAvailableException;
 import com.johan.vertretungsplan.objects.Schule;
 import com.mongodb.*;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bson.types.BasicBSONList;
 
 import java.io.PrintWriter;
@@ -61,7 +62,8 @@ public class CronJob implements Runnable {
 						ex.printStackTrace(pw);
 
 						log.put("result", "error");
-						log.put("stack_trace", sw.toString());
+						log.put("stack_trace_2", sw.toString());
+                        log.put("stack_trace", arrayToString(ExceptionUtils.getRootCauseStackTrace(ex), "\n"));
 						hasErrors = true;
 					} else {
 						// resp.getWriter().println("Erfolgreich: " +
@@ -98,5 +100,18 @@ public class CronJob implements Runnable {
 			e.printStackTrace();
 		}
 	}
+
+    private String arrayToString(String[] strings, String separator) {
+        StringBuilder builder = new StringBuilder();
+        boolean first = true;
+        for (String string:strings) {
+            if (first)
+                first = false;
+            else
+                builder.append(separator);
+            builder.append(string);
+        }
+        return builder.toString();
+    }
 
 }

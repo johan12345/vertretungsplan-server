@@ -18,4 +18,5 @@ dependencies {
     compile 'com.ganyo:gcm-server:1.0.2'
     compile 'com.thetransactioncompany:cors-filter:1.9.3'
     compile 'org.apache.httpcomponents:fluent-hc:4.3.5'
+    compile 'org.apache.commons:commons-lang3:3.3.2'
 }
