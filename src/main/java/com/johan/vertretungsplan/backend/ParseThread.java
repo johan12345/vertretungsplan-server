@@ -130,12 +130,14 @@ public class ParseThread implements Callable<ParseThreadResult> {
 			
 			return result;
 		} catch (IOException e) {
-			String msg = e.getMessage().toLowerCase();
-			if (reg != null && (msg.contains("login") || msg.contains("authorization"))) {
-				regColl.remove(reg);
-				reg.put("password_invalid", true);
-				regColl.insert(reg);
-			}
+            if (e.getMessage() != null) {
+                String msg = e.getMessage().toLowerCase();
+                if (reg != null && (msg.contains("login") || msg.contains("authorization"))) {
+                    regColl.remove(reg);
+                    reg.put("password_invalid", true);
+                    regColl.insert(reg);
+                }
+            }
 			cookiesColl.remove(new BasicDBObject("_id", schule.getId()));
 			throw e;
 		}

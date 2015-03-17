@@ -39,6 +39,7 @@ public class DSBLightParser extends UntisCommonParser {
         String response = httpGet(BASE_URL + "/Player.aspx?ID=" + id, ENCODING,
                 referer);
         Document doc = Jsoup.parse(response);
+        // IFrame.aspx
         String iframeUrl = doc.select("iframe").first().attr("src");
 
         response = httpGet(iframeUrl, ENCODING, referer);
@@ -62,24 +63,66 @@ public class DSBLightParser extends UntisCommonParser {
         Pattern regex = Pattern.compile("location\\.href=\"([^\"]*)\"");
 
         for (Element iframe : doc.select("iframe")) {
+            // PreProgram.aspx
             String response2 = httpGet(iframe.attr("src"), ENCODING, referer);
             Matcher matcher = regex.matcher(response2);
             if (matcher.find()) {
+                // Program.aspx
                 String url = matcher.group(1);
-                String response3 = httpGet(url, ENCODING, referer);
-                Document doc2 = Jsoup.parse(response3);
-                for (Element iframe2 : doc2.select("iframe")) {
-                    parseTag(iframe2.attr("src"), referer, tage, iframe2.attr("src"));
-                }
+                parseProgram(url, tage, referer);
             } else {
                 throw new IOException("URL nicht gefunden");
             }
         }
 
         Vertretungsplan v = new Vertretungsplan();
-        v.setTage(new ArrayList<VertretungsplanTag>(tage.values()));
+        List<VertretungsplanTag> tageList = new ArrayList<VertretungsplanTag>(tage.values());
+        Collections.sort(tageList, new Comparator<VertretungsplanTag>() {
+
+            @Override
+            public int compare(VertretungsplanTag o1, VertretungsplanTag o2) {
+                // Check if dates are parseable, else compare strings
+                Pattern pattern = Pattern.compile("(\\d\\d?)\\.(\\d\\d?)\\.(\\d\\d\\d?\\d?)");
+                Matcher matcher1 = pattern.matcher(o1.getDatum());
+                Matcher matcher2 = pattern.matcher(o2.getDatum());
+                if (matcher1.find() && matcher2.find()) {
+                    if (!matcher1.group(3).equals(matcher2.group(3)))
+                        return matcher1.group(3).compareTo(matcher2.group(3));
+                    else if (!matcher1.group(2).equals(matcher2.group(2)))
+                        return matcher1.group(2).compareTo(matcher2.group(2));
+                    else
+                        return matcher1.group(1).compareTo(matcher2.group(1));
+                } else {
+                    return o1.getDatum().compareTo(o2.getDatum());
+                }
+            }
+
+        });
+        v.setTage(tageList);
 
         return v;
+    }
+
+    private void parseProgram(String url, LinkedHashMap<String, VertretungsplanTag> tage, Map<String, String> referer) throws IOException {
+        parseProgram(url, tage, referer, null);
+    }
+
+    private void parseProgram(String url, LinkedHashMap<String, VertretungsplanTag> tage, Map<String, String> referer, String firstUrl) throws IOException {
+        String response = httpGet(url, ENCODING, referer);
+        Document doc = Jsoup.parse(response, url);
+        if (doc.select("iframe").attr("src").equals(firstUrl))
+            return;
+        for (Element iframe : doc.select("iframe")) {
+            // Data
+            parseTag(iframe.attr("src"), referer, tage, iframe.attr("src"));
+        }
+        if (doc.select("#hlNext").size() > 0) {
+            String nextUrl = doc.select("#hlNext").first().attr("abs:href");
+            if (firstUrl == null)
+                parseProgram(nextUrl, tage, referer, doc.select("iframe").attr("src"));
+            else
+                parseProgram(nextUrl, tage, referer, firstUrl);
+        }
     }
 
     private void parseTag(String url, Map<String, String> referer, LinkedHashMap<String, VertretungsplanTag> tage, String startUrl) throws IOException {
