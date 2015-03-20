@@ -290,7 +290,7 @@ public abstract class UntisCommonParser extends BaseParser {
 			JSONObject data) throws JSONException {
 		VertretungsplanTag tag = new VertretungsplanTag();
 		tag.setDatum(doc.select(".mon_title").first().text()
-				.replaceAll(" \\(Seite \\d / \\d\\)", ""));
+				.replaceAll(" \\(Seite \\d+ / \\d+\\)", ""));
 		if (doc.select("table.mon_head td[align=right] p").size() == 0
 				|| schule.getData().optBoolean("stand_links", false)) {
 			tag.setStand(doc.select("body").html()
