@@ -1,17 +1,12 @@
 package com.johan.vertretungsplan.backend;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import com.mongodb.*;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 @SuppressWarnings("serial")
 public class GetKlassenServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {	
@@ -25,9 +20,11 @@ public class GetKlassenServlet extends HttpServlet {
 		DBObject school = coll.findOne(query);
 		if(school != null) {
 			resp.setStatus(HttpServletResponse.SC_OK);
-			String schools = (String) school.get("classes");
-			resp.getWriter().print(schools);
-			resp.getWriter().close();
+            String classes = (String) school.get("classes");
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().print(classes);
+            resp.getWriter().close();
 		} else {
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}
