@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ParseThread implements Callable<ParseThreadResult> {
 	
@@ -147,9 +149,10 @@ public class ParseThread implements Callable<ParseThreadResult> {
 		public Vertretungsplan v;
 		public List<String> classes;
 	}
-	
-	private HashMap<String, ChangeType> changedClasses(Vertretungsplan vAlt, Vertretungsplan v, List<String> klassen) {
-		HashMap<String, ChangeType> changedClasses = new HashMap<String, ChangeType>();
+
+    public static HashMap<String, ChangeType> changedClasses(Vertretungsplan vAlt, Vertretungsplan
+            v, List<String> klassen) {
+        HashMap<String, ChangeType> changedClasses = new HashMap<String, ChangeType>();
 		for(String klasse:klassen) {
 			ChangeType change = somethingChanged(vAlt, v, klasse);
 			if(change != null)
@@ -157,9 +160,9 @@ public class ParseThread implements Callable<ParseThreadResult> {
 		}
 		return changedClasses;
 	}
-	
-	private ChangeType somethingChanged(Vertretungsplan vAlt, Vertretungsplan v,
-			String klasse) {
+
+    public static ChangeType somethingChanged(Vertretungsplan vAlt, Vertretungsplan v,
+                                              String klasse) {
 		
 		for(AdditionalInfo info:v.getAdditionalInfos()) {
 			if(info.hasInformation()) {
@@ -207,7 +210,14 @@ public class ParseThread implements Callable<ParseThreadResult> {
 							if(!oldTag.getKlassen().get(klasse).getVertretung().equals(
 									tag.getKlassen().get(klasse).getVertretung())) {
 								//Die Vertretungen sind nicht gleich
-								return ChangeType.NOTIFICATION;
+                                Logger log = Logger.getGlobal();
+                                log.log(Level.INFO, "Änderung " +
+                                        "für Schule " + v.getSchoolName());
+                                log.log(Level.INFO, "Alter Vertretungsplan:");
+                                log.log(Level.INFO, new Gson().toJson(vAlt));
+                                log.log(Level.INFO, "Neuer Vertretungsplan:");
+                                log.log(Level.INFO, new Gson().toJson(v));
+                                return ChangeType.NOTIFICATION;
 							} else {
 								//keine Veränderung
 							}
