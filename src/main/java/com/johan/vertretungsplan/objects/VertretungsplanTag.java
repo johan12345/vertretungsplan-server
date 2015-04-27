@@ -100,7 +100,7 @@ public class VertretungsplanTag implements Serializable {
         }
         if (tag.getNachrichten() != null) {
             for (String nachricht:tag.getNachrichten()) {
-                getNachrichten().add(nachricht);
+                if (!getNachrichten().contains(nachricht)) getNachrichten().add(nachricht);
             }
         }
 	}
