@@ -210,7 +210,7 @@ public class ParseThread implements Callable<ParseThreadResult> {
 							if(!oldTag.getKlassen().get(klasse).getVertretung().equals(
 									tag.getKlassen().get(klasse).getVertretung())) {
 								//Die Vertretungen sind nicht gleich
-                                Logger log = Logger.getGlobal();
+                                Logger log = Logger.getLogger(ParseThread.class.getName());
                                 log.log(Level.INFO, "Änderung " +
                                         "für Schule " + v.getSchoolName());
                                 log.log(Level.INFO, "Alter Vertretungsplan:");
