@@ -190,13 +190,17 @@ public class ParseThread implements Callable<ParseThreadResult> {
 					break;
 				}
 			}
-			
-			if(tag.getKlassen().get(klasse) != null
+
+            Logger log = Logger.getLogger(ParseThread.class.getName());
+            if(tag.getKlassen().get(klasse) != null
 					&& tag.getKlassen().get(klasse).getVertretung().size() > 0) {
 				//Auf dem neuen Plan gibt es Vertretungen, die die gewählte Klasse betreffen
 				if(oldTag == null) {
 					//dieser Tag wurde neu hinzugefügt -> Vertretungen waren vorher nicht bekannt
-					return ChangeType.NOTIFICATION;
+                    log.log(Level.INFO, "Änderung " +
+                            "für Schule " + v.getSchoolName() + ", Tag " + tag.getDatum() + " " +
+                            "wurde neu hinzugefügt");
+                    return ChangeType.NOTIFICATION;
 				} else {
 					//dieser Tag war vorher schon auf dem Vertretungsplan
 					//Stand prüfen
@@ -210,7 +214,6 @@ public class ParseThread implements Callable<ParseThreadResult> {
 							if(!oldTag.getKlassen().get(klasse).getVertretung().equals(
 									tag.getKlassen().get(klasse).getVertretung())) {
 								//Die Vertretungen sind nicht gleich
-                                Logger log = Logger.getLogger(ParseThread.class.getName());
                                 log.log(Level.INFO, "Änderung " +
                                         "für Schule " + v.getSchoolName());
                                 log.log(Level.INFO, "Alter Vertretungsplan:");
@@ -223,13 +226,19 @@ public class ParseThread implements Callable<ParseThreadResult> {
 							}
 						} else {
 							//vorher waren keine Vertretungen für die gewählte Klasse bekannt -> es wurde etwas verändert
-							return ChangeType.NOTIFICATION;
+                            log.log(Level.INFO, "Änderung " +
+                                    "für Schule " + v.getSchoolName() + ", Klasse " + klasse + " " +
+                                    "hat neue Vertretungen");
+                            return ChangeType.NOTIFICATION;
 						}
 					}
 				}
 			} else {
 				if (oldTag == null) {
-					return ChangeType.NO_NOTIFICATION;
+                    log.log(Level.INFO, "Änderung " +
+                            "für Schule " + v.getSchoolName() + ", Tag " + tag.getDatum() + " " +
+                            "wurde neu hinzugefügt, enthält aber keine Vertretungen für " + klasse);
+                    return ChangeType.NO_NOTIFICATION;
 				}
 			}
 		}
