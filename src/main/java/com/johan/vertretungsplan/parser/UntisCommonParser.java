@@ -20,7 +20,6 @@ import com.johan.vertretungsplan.objects.KlassenVertretungsplan;
 import com.johan.vertretungsplan.objects.Schule;
 import com.johan.vertretungsplan.objects.Vertretung;
 import com.johan.vertretungsplan.objects.VertretungsplanTag;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.nodes.Document;
@@ -29,9 +28,7 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -251,7 +248,21 @@ public abstract class UntisCommonParser extends BaseParser {
 				}
 			}
 		}
-	}
+        if (data.optBoolean("sort_classes")) {
+            List<KlassenVertretungsplan> list = new ArrayList<>(tag.getKlassen().values());
+            Collections.sort(list, new Comparator<KlassenVertretungsplan>() {
+                @Override
+                public int compare(KlassenVertretungsplan o1, KlassenVertretungsplan o2) {
+                    return o1.getKlasse().compareTo(o2.getKlasse());
+                }
+            });
+            LinkedHashMap<String, KlassenVertretungsplan> hashMap = new LinkedHashMap<>();
+            for (KlassenVertretungsplan klasse : list) {
+                hashMap.put(klasse.getKlasse(), klasse);
+            }
+            tag.setKlassen(hashMap);
+        }
+    }
 
 	private boolean hasData(String text) {
         return !text.trim().equals("") && !text.trim().equals("---");
