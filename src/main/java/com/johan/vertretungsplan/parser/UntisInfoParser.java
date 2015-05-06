@@ -16,12 +16,9 @@
 
 package com.johan.vertretungsplan.parser;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.johan.vertretungsplan.objects.Schule;
+import com.johan.vertretungsplan.objects.Vertretungsplan;
+import com.johan.vertretungsplan.objects.VertretungsplanTag;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,9 +27,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.johan.vertretungsplan.objects.Schule;
-import com.johan.vertretungsplan.objects.Vertretungsplan;
-import com.johan.vertretungsplan.objects.VertretungsplanTag;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Parser für Untis-Vertretungspläne mit dem Info-Stundenplan-Layout
@@ -84,17 +83,20 @@ public class UntisInfoParser extends UntisCommonParser {
 		
 		for (Element option:select.children()) {
 			String week = option.attr("value");
-			if (data.optBoolean("single_classes", false)) {
+            String letter = data.optString("letter", "w");
+            if (data.optBoolean("single_classes", false)) {
 				int classNumber = 1;
 				for (String klasse:getAllClasses()) {
 					String paddedNumber = String.format("%05d", classNumber);
 					String url;
 					if (data.optBoolean("w_after_number", false))
-						url = baseUrl  + "/" + week + "/w/w" + paddedNumber + ".htm";
-					else
-						url = baseUrl + "/w/" + week + "/w" + paddedNumber + ".htm";
-					
-					Document doc = Jsoup.parse(httpGet(url, schule.getData().getString("encoding")));
+                        url = baseUrl + "/" + week + "/" + letter + "/" + letter + paddedNumber +
+                                ".htm";
+                    else
+                        url = baseUrl + "/" + letter + "/" + week + "/" + letter + paddedNumber +
+                                ".htm";
+
+                    Document doc = Jsoup.parse(httpGet(url, schule.getData().getString("encoding")));
 					Elements days = doc.select("#vertretung > p > b, #vertretung > b");
 					for(Element day:days) {
 						VertretungsplanTag tag = getTagByDatum(tage, day.text());
@@ -124,10 +126,10 @@ public class UntisInfoParser extends UntisCommonParser {
 			} else {
 				String url;
 				if (data.optBoolean("w_after_number", false))
-					url = baseUrl  + "/" + week +"/w/w00000.htm";
-				else
-					url = baseUrl + "/w/" + week + "/w00000.htm";
-				Document doc = Jsoup.parse(httpGet(url, schule.getData().getString("encoding")));
+                    url = baseUrl + "/" + week + "/" + letter + "/" + letter + "00000.htm";
+                else
+                    url = baseUrl + "/" + letter + "/" + week + "/" + letter + "00000.htm";
+                Document doc = Jsoup.parse(httpGet(url, schule.getData().getString("encoding")));
 				Elements days = doc.select("#vertretung > p > b, #vertretung > b");
 				for(Element day:days) {
 					VertretungsplanTag tag = getTagByDatum(tage, day.text());
