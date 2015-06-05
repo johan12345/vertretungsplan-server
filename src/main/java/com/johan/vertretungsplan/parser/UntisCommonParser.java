@@ -39,11 +39,11 @@ import java.util.regex.Pattern;
  */
 public abstract class UntisCommonParser extends BaseParser {
 
+    private static final String[] EXCLUDED_CLASS_NAMES = new String[]{"-----"};
+
 	public UntisCommonParser(Schule schule) {
 		super(schule);
 	}
-
-	private static final String[] EXCLUDED_CLASS_NAMES = new String[] { "-----" };
 
 	/**
 	 * Parst eine Vertretungstabelle eines Untis-Vertretungsplans
@@ -115,6 +115,16 @@ public abstract class UntisCommonParser extends BaseParser {
 								i++;
 							}
 
+                            if (v.getDesc() != null && v.getLesson() == null && v.getPreviousRoom() == null && v
+                                    .getPreviousSubject() == null && v.getPreviousTeacher() == null && v.getRoom() ==
+                                    null && v.getSubject() == null && v.getTeacher() == null && v.getType() == null) {
+                                // Beschreibung aus der letzten Zeile fortgesetzt
+                                Vertretung previousVertretung = kv.getVertretung().get(kv.getVertretung().size() - 1);
+                                previousVertretung.setDesc(previousVertretung.getDesc() + " " + v.getDesc());
+                                zeile = zeile.nextElementSibling();
+                                continue;
+                            }
+
 							if (v.getType() == null)
 								v.setType("Vertretung");
 
@@ -138,7 +148,8 @@ public abstract class UntisCommonParser extends BaseParser {
 				if (data.getJSONArray("columns").getString(i).equals("type"))
 					hasType = true;
 			}
-			for (Element zeile : table
+            Vertretung previousVertretung = null;
+            for (Element zeile : table
 					.select("tr.list.odd:not(:has(td.inline_header)), "
 							+ "tr.list.even:not(:has(td.inline_header)), "
 							+ "tr:has(td[align=center]:has(font[color]))")) {
@@ -181,6 +192,14 @@ public abstract class UntisCommonParser extends BaseParser {
 						klassen = getClassName(spalte.text(), data);
 					i++;
 				}
+
+                if (v.getDesc() != null && v.getLesson() == null && v.getPreviousRoom() == null && v
+                        .getPreviousSubject() == null && v.getPreviousTeacher() == null && v.getRoom() == null && v
+                        .getSubject() == null && v.getTeacher() == null && v.getType() == null && previousVertretung != null) {
+                    // Beschreibung aus der letzten Zeile fortgesetzt
+                    previousVertretung.setDesc(previousVertretung.getDesc() + " " + v.getDesc());
+                    continue;
+                }
 
 				if (v.getType() == null) {
 					if (zeile.select("strike").size() > 0 || (v.getSubject() == null && v.getRoom() == null && v.getTeacher() == null && v.getPreviousSubject() != null))
@@ -246,7 +265,8 @@ public abstract class UntisCommonParser extends BaseParser {
 						tag.getKlassen().put(klasse, kv);
 					}
 				}
-			}
+                previousVertretung = v;
+            }
 		}
         if (data.optBoolean("sort_classes")) {
             List<KlassenVertretungsplan> list = new ArrayList<>(tag.getKlassen().values());
